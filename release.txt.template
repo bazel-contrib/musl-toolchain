@@ -1,0 +1,19 @@
+To use this release, past the following into your WORKSPACE file:
+
+```
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "musl_toolchains",
+    sha256 = "{sha256}",
+    url = "{url}",
+)
+
+load("@musl_toolchains//:repositories.bzl", "load_musl_toolchains")
+
+load_musl_toolchains()
+
+load("@musl_toolchains//:toolchains.bzl", "register_musl_toolchains")
+
+register_musl_toolchains()
+```
