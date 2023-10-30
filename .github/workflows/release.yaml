@@ -269,10 +269,7 @@ jobs:
         \ ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl//:musl_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\n\
         EOF\n\ncat >toolchains.bzl <<EOF\ndef register_musl_toolchains():\n    native.register_toolchains(\"\
-        @musl_toolchains//:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
-        , \"@musl_toolchains//:musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
-        , \"@musl_toolchains//:musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
-        )\nEOF\n"
+        @musl_toolchains//:all\")\nEOF\n"
     - name: Generate repositories.bzl
       run: "cat >repositories.bzl <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
         , \"http_archive\")\n\ndef load_musl_toolchains():\n    http_archive(\n  \

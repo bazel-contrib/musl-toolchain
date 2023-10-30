@@ -286,10 +286,6 @@ def generate_release_archive(toolchain_infos, output_path):
         ]
     )
 
-    toolchains_to_register = ", ".join(
-        [f'"@musl_toolchains//:{artifact.repo_name}"' for artifact in toolchain_infos]
-    )
-
     http_archives = "\n".join(
         [
             http_archive(
@@ -310,7 +306,7 @@ EOF
 
 cat >toolchains.bzl <<EOF
 def register_musl_toolchains():
-    native.register_toolchains({toolchains_to_register})
+    native.register_toolchains("@musl_toolchains//:all")
 EOF
 """,
         },

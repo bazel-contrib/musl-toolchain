@@ -34,6 +34,7 @@ all_link_actions = [
 
 def _impl(ctx):
     target_arch = ctx.attr.target_arch
+    target_cpu = "k8" if ctx.attr.target_arch == "x86_64" else "arm64"
 
     objcopy_embed_data_action = action_config(
         action_name = "objcopy_embed_data",
@@ -280,12 +281,12 @@ def _impl(ctx):
 
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
-        toolchain_identifier = "k8-musl-toolchain",
+        toolchain_identifier = target_cpu + "-musl-toolchain",
         host_system_name = "local",
         target_system_name = "local",
-        target_cpu = "k8",
+        target_cpu = target_cpu,
         target_libc = "musl",
-        compiler = "musl",
+        compiler = "gcc",
         abi_version = "local",
         abi_libc_version = "local",
         tool_paths = tool_paths,
