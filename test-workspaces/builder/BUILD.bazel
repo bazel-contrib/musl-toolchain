@@ -1,0 +1,19 @@
+genrule(
+    name = "generate_source",
+    outs = ["main.cc"],
+    cmd = """cat >$@ <<EOF
+#include <stdio.h>
+
+int main(void) {
+  printf("Built on $$(uname) $$(uname -m)\\n");
+  return 0;
+}
+EOF
+""",
+)
+
+cc_binary(
+    name = "binary",
+    srcs = ["main.cc"],
+    linkopts = ["-static"],
+)
