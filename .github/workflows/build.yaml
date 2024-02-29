@@ -1,5 +1,6 @@
 name: PR
 'on':
+  pull_request:
   workflow_dispatch: null
 jobs:
   apple-darwin-x86_64-x86_64:
