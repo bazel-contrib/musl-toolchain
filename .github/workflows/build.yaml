@@ -2,6 +2,7 @@
 
 name: PR
 'on':
+  pull_request: null
   workflow_dispatch: null
 jobs:
   unknown-linux-gnu-x86_64-x86_64:
@@ -94,9 +95,8 @@ jobs:
       with:
         name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         path: .
-    - name: Download bazelisk as bazel
-      run: curl --fail -L -o /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-darwin-amd64
-        && chmod 0755 /usr/local/bin/bazel
+    - name: Skipping downloading bazelisk - already installed
+      run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
         , \"http_archive\")\n\nhttp_archive(\n    name = \"musl_toolchain\",\n   \

@@ -83,10 +83,17 @@ class BaseRunner:
 
 
 def install_bazel(os: OS, arch: Architecture):
-    return {
-        "name": "Download bazelisk as bazel",
-        "run": f"curl --fail -L -o /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-{os.for_bazel_download}-{arch.for_bazel_download} && chmod 0755 /usr/local/bin/bazel",
-    }
+    match os:
+        case OS.Linux:
+            return {
+                "name": "Download bazelisk as bazel",
+                "run": f"curl --fail -L -o /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-{os.for_bazel_download}-{arch.for_bazel_download} && chmod 0755 /usr/local/bin/bazel",
+            }
+        case OS.MacOS:
+            return {
+                "name": "Skipping downloading bazelisk - already installed",
+                "run": "bazel --version",
+            }
 
 
 linux_x86_64_runner = BaseRunner(
@@ -473,7 +480,7 @@ def main():
         actions_config = {
             "name": "PR",
             "on": {
-                # TODO: Make this trigger on PR
+                "pull_request": None,
                 "workflow_dispatch": None,
             },
             "jobs": jobs,
