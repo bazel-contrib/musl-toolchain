@@ -249,18 +249,18 @@ def download_url_for(filename, version):
 
 
 def generate_toolchain(
-    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture
+    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture, extra_exec_compatible_with_suffix: str = "", extra_target_compatible_with_suffix: str = ""
 ):
     return f"""toolchain(
     name = "{repo_name}",
     exec_compatible_with = [
         "@platforms//cpu:{source_arch.for_bazel_platform}",
         "@platforms//os:{source_os.for_bazel_platform}",
-    ],
+    ]{extra_exec_compatible_with_suffix},
     target_compatible_with = [
         "@platforms//cpu:{target_arch.for_bazel_platform}",
         "@platforms//os:linux",
-    ],
+    ]{extra_target_compatible_with_suffix},
     toolchain = "@{repo_name}//:musl_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
@@ -284,6 +284,8 @@ def generate_release_archive(toolchain_infos, output_path, version):
                 artifact.source_arch,
                 artifact.source_os,
                 artifact.target_arch,
+                extra_exec_compatible_with_suffix=" + rctx.attr.extra_exec_compatible_with",
+                extra_target_compatible_with_suffix=" + rctx.attr.extra_target_compatible_with",
             )
             for artifact in toolchain_infos
         ]
@@ -299,17 +301,12 @@ def generate_release_archive(toolchain_infos, output_path, version):
             for artifact in toolchain_infos
         ]
     )
-
     return [
         {
             "name": "Generate toolchains.bzl",
-            "run": f"""cat >BUILD.bazel <<EOF
-{toolchain_build_contents}
-EOF
-
-cat >toolchains.bzl <<EOF
+            "run": f"""cat >toolchains.bzl <<EOF
 def register_musl_toolchains():
-    native.register_toolchains("@musl_toolchains//:all")
+    native.register_toolchains("@musl_toolchains_hub//:all")
 EOF
 """,
         },
@@ -318,8 +315,28 @@ EOF
             "run": f"""cat >repositories.bzl <<EOF
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-def load_musl_toolchains():
+def _toolchain_repo(rctx):
+    rctx.file(
+        "BUILD.bazel",
+        \"\"\"{toolchain_build_contents}\"\"\",
+    )
+
+toolchain_repo = repository_rule(
+    implementation = _toolchain_repo,
+    attrs = {{
+        "extra_exec_compatible_with": attr.string_list(),
+        "extra_target_compatible_with": attr.string_list(),
+    }},
+)
+
+def load_musl_toolchains(extra_exec_compatible_with=[], extra_target_compatible_with=[]):
 {textwrap.indent(http_archives, "    ")}
+
+    toolchain_repo(
+        name = "musl_toolchains_hub",
+        extra_exec_compatible_with = extra_exec_compatible_with,
+        extra_target_compatible_with = extra_target_compatible_with,
+    )
 EOF
 """,
         },
@@ -328,6 +345,7 @@ EOF
             "run": f"./deterministic-tar.sh {output_path} toolchains.bzl repositories.bzl BUILD.bazel",
         },
     ]
+
 
 
 def upload_release_archive_artifact(filename):
