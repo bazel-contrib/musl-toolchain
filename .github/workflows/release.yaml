@@ -3,6 +3,9 @@
 name: Release
 'on':
   workflow_dispatch: null
+  push:
+    tags:
+    - '*'
 jobs:
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-latest
@@ -196,16 +199,17 @@ jobs:
         , \"http_archive\")\n\ndef load_musl_toolchains():\n    http_archive(\n  \
         \      name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/v0.1.0/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
+        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
         ,\n    )\n\n    http_archive(\n        name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/v0.1.0/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
+        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
         ,\n    )\n\nEOF\n"
     - name: Generate release archive
-      run: ./deterministic-tar.sh musl_toolchain-v0.1.0.tar.gz toolchains.bzl repositories.bzl
-        BUILD.bazel
+      run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz toolchains.bzl
+        repositories.bzl BUILD.bazel
     - name: Generate release body
-      run: sha256=$(sha256sum musl_toolchain-v0.1.0.tar.gz | awk '{print $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/v0.1.0/musl_toolchain-v0.1.0.tar.gz'
+      run: sha256=$(sha256sum musl_toolchain-${{github.ref_name}}.tar.gz | awk '{print
+        $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'
         ; sed -e "s#{sha256}#${sha256}#g" -e "s#{url}#${url}#g" release.txt.template
         > release-notes.txt
     - id: create_release
@@ -215,7 +219,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         generate_release_notes: true
-        tag_name: v0.1.0
+        tag_name: ${{github.ref_name}}
         body_path: release-notes.txt
         target_commitish: ${{ github.base_ref }}
     - name: Upload release archive
@@ -224,8 +228,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl_toolchain-v0.1.0.tar.gz
-        asset_path: musl_toolchain-v0.1.0.tar.gz
+        asset_name: musl_toolchain-${{github.ref_name}}.tar.gz
+        asset_path: musl_toolchain-${{github.ref_name}}.tar.gz
         asset_content_type: application/gzip
     - name: Upload release archive
       uses: actions/upload-release-asset@v1
