@@ -304,7 +304,9 @@ def generate_release_archive(toolchain_infos, output_path, version):
     return [
         {
             "name": "Generate toolchains.bzl",
-            "run": f"""cat >toolchains.bzl <<EOF
+            "run": f"""touch BUILD.bazel
+
+cat >toolchains.bzl <<EOF
 def register_musl_toolchains():
     native.register_toolchains("@musl_toolchains_hub//:all")
 EOF
