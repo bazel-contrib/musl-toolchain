@@ -537,8 +537,12 @@ def main():
         actions_config = {
             "name": "Release",
             "on": {
-                # TODO: Make this trigger on tag push
                 "workflow_dispatch": None,
+                "push": {
+                    "tags": [
+                        "*",
+                    ]
+                }
             },
             "jobs": make_jobs(release=True),
         }

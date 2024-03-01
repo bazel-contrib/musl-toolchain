@@ -3,6 +3,9 @@
 name: Release
 'on':
   workflow_dispatch: null
+  push:
+    tags:
+    - '*'
 jobs:
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-latest
