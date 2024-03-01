@@ -172,7 +172,7 @@ def get_platform_sha256sum(os: OS):
 def generate_builder_workspace_config_build_file(
     source_os: OS, source_arch: Architecture, target_arch: Architecture
 ):
-    content = generate_toolchain("musl_toolchain", source_arch, source_os, target_arch)
+    content = generate_toolchain("musl_toolchain", source_arch, source_os, target_arch, wrap_in_triple_quotes=False)
     content += f"""
 platform(
     name = "platform",
@@ -249,22 +249,43 @@ def download_url_for(filename, version):
 
 
 def generate_toolchain(
-    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture, extra_exec_compatible_with_suffix: str = "", extra_target_compatible_with_suffix: str = ""
+    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_exec_compatible_expr: str = "", extra_target_compatible_expr: str = ""
 ):
-    return f"""toolchain(
+    if not wrap_in_triple_quotes and (extra_exec_compatible_expr or extra_target_compatible_expr):
+        raise RuntimeError("Can't set extra_{exec,target}_compatible_expr if not wrap_in_triple_quotes")
+
+    to_return = ""
+    if wrap_in_triple_quotes:
+        to_return += '"""'
+    to_return += f"""toolchain(
     name = "{repo_name}",
     exec_compatible_with = [
         "@platforms//cpu:{source_arch.for_bazel_platform}",
         "@platforms//os:{source_os.for_bazel_platform}",
-    ]{extra_exec_compatible_with_suffix},
+    ]"""
+
+    if extra_exec_compatible_expr:
+        to_return += ' + """ + repr(' + extra_exec_compatible_expr + ') + """'
+
+    to_return += f""",
     target_compatible_with = [
         "@platforms//cpu:{target_arch.for_bazel_platform}",
         "@platforms//os:linux",
-    ]{extra_target_compatible_with_suffix},
+    ]"""
+
+    if extra_target_compatible_expr:
+        to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
+
+    to_return += f""",
     toolchain = "@{repo_name}//:musl_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 """
+
+    if wrap_in_triple_quotes:
+        to_return += '"""'
+
+    return to_return
 
 
 def http_archive(name, sha256, url):
@@ -277,15 +298,16 @@ def http_archive(name, sha256, url):
 
 
 def generate_release_archive(toolchain_infos, output_path, version):
-    toolchain_build_contents = "\n".join(
+    toolchain_build_contents = " + ".join(
         [
             generate_toolchain(
                 artifact.repo_name,
                 artifact.source_arch,
                 artifact.source_os,
                 artifact.target_arch,
-                extra_exec_compatible_with_suffix=" + rctx.attr.extra_exec_compatible_with",
-                extra_target_compatible_with_suffix=" + rctx.attr.extra_target_compatible_with",
+                wrap_in_triple_quotes=True,
+                extra_exec_compatible_expr="rctx.attr.extra_exec_compatible_with",
+                extra_target_compatible_expr="rctx.attr.extra_target_compatible_with",
             )
             for artifact in toolchain_infos
         ]
@@ -320,7 +342,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 def _toolchain_repo(rctx):
     rctx.file(
         "BUILD.bazel",
-        \"\"\"{toolchain_build_contents}\"\"\",
+        {toolchain_build_contents},
     )
 
 toolchain_repo = repository_rule(
