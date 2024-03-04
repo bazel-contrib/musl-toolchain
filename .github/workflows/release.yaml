@@ -159,11 +159,47 @@ jobs:
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n)\n\nEOF\n"
     - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
+  unknown-linux-gnu-x86_64-aarch64:
+    runs-on: ubuntu-latest
+    container: centos:centos8
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - run: sed -i 's|mirrorlist|#mirrorlist|g' /etc/yum.repos.d/CentOS-*
+    - run: sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g'
+        /etc/yum.repos.d/CentOS-*
+    - run: yum install -y bzip2 git make patch wget
+    - run: dnf group install -y "Development Tools"
+    - run: ln -s /usr/bin/tar /usr/bin/gnutar
+    - name: Build musl
+      run: ./build.sh aarch64
+    - name: Upload musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+      uses: actions/upload-artifact@v3
+      with:
+        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        if-no-files-found: error
+  apple-darwin-x86_64-aarch64:
+    runs-on: macos-11
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - run: brew install wget md5sha1sum gnu-tar
+    - name: Build musl
+      run: ./build.sh aarch64
+    - name: Upload musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+      uses: actions/upload-artifact@v3
+      with:
+        name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        if-no-files-found: error
   release:
     runs-on: ubuntu-latest
     needs:
     - unknown-linux-gnu-x86_64-x86_64
     - apple-darwin-x86_64-x86_64
+    - unknown-linux-gnu-x86_64-aarch64
+    - apple-darwin-x86_64-aarch64
     - test-x86_64
     steps:
     - name: Checkout repo
@@ -178,6 +214,16 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        path: .
+    - name: Download musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+      uses: actions/download-artifact@v3
+      with:
+        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        path: .
+    - name: Download musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+      uses: actions/download-artifact@v3
+      with:
+        name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Generate toolchains.bzl
       run: "touch BUILD.bazel\n\ncat >toolchains.bzl <<EOF\ndef register_musl_toolchains():\n\
@@ -199,6 +245,20 @@ jobs:
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl//:musl_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
+        \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
+        \     \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
+        \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
+        ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl//:musl_toolchain\"\
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
+        \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
+        \     \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
+        \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
+        ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl//:musl_toolchain\"\
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\",\n    )\n\ntoolchain_repo = repository_rule(\n    implementation = _toolchain_repo,\n\
         \    attrs = {\n        \"extra_exec_compatible_with\": attr.string_list(),\n\
         \        \"extra_target_compatible_with\": attr.string_list(),\n    },\n)\n\
@@ -209,6 +269,12 @@ jobs:
         ,\n    )\n\n    http_archive(\n        name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
         \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
+        ,\n    )\n\n    http_archive(\n        name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\"\
+        ,\n    )\n\n    http_archive(\n        name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
         ,\n    )\n\n\n    toolchain_repo(\n        name = \"musl_toolchains_hub\"\
         ,\n        extra_exec_compatible_with = extra_exec_compatible_with,\n    \
         \    extra_target_compatible_with = extra_target_compatible_with,\n    )\n\
@@ -257,4 +323,22 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         asset_path: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload release archive
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        asset_path: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload release archive
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        asset_path: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         asset_content_type: application/gzip

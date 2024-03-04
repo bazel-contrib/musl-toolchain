@@ -421,10 +421,7 @@ def make_jobs(release, version):
     target_os = OS.Linux
     target_arches = [
         Architecture.X86_64,
-        # TODO: GitHub Actions doesn't currently have a way of running Linux ARM64, so we can't currently test these.
-        # For now, we won't build them either, but if needed, we could build and release these untested binaries.
-        # See https://github.com/actions/runner-images/issues/5631
-        # Architecture.ARM64,
+        Architecture.ARM64,
     ]
 
     releasable_artifacts = []
@@ -461,6 +458,12 @@ def make_jobs(release, version):
                 )
             )
 
+            # TODO: Make this unconditional when GitHub Actions supports Linux arm64 runners
+            # For now we just release these binaries without testing them
+            # (Currently in private beta: https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/)
+            # See https://github.com/actions/runner-images/issues/5631
+            if target_arch != Architecture.X86_64:
+                continue
             test_build_job_name = f"{source_os.for_musl}-{source_arch.for_musl}-{target_arch.for_musl}-test-build"
             test_build_filename = f"test-binary-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
             jobs[test_build_job_name] = runner.top_level_properties | {
@@ -491,6 +494,12 @@ def make_jobs(release, version):
                 "output": test_build_filename,
             }
 
+        # TODO: Make this unconditional when GitHub Actions supports Linux arm64 runners
+        # For now we just release these binaries without testing them
+        # (Currently in private beta: https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/)
+        # See https://github.com/actions/runner-images/issues/5631
+        if target_arch != Architecture.X86_64:
+            continue
         test_job_name = f"test-{target_arch.for_musl}"
         test_jobs.append(test_job_name)
         jobs[test_job_name] = linux_x86_64_runner.top_level_properties | {
