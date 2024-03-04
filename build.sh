@@ -29,7 +29,7 @@ trap "rm -rf ${working_directory}" EXIT
 # Clone a fork which has Apple Silicon support - ideally https://github.com/richfelker/musl-cross-make/pull/129 would get merged at some point.
 git clone https://github.com/illicitonion/musl-cross-make.git "${working_directory}"
 cd "${working_directory}"
-git checkout f930e8fba34689612383dda775def9bb59821e71
+git checkout 212dcbb355bc1cbac40fe7fbf4db67447d2d710d
 
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}"
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" install
