@@ -132,7 +132,7 @@ darwin_x86_64_runner = BaseRunner(
 
 darwin_aarch64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-13-xlarge",
+        "runs-on": "macos-14",
     },
     setup_steps=_setup_darwin_steps,
 )

@@ -128,7 +128,7 @@ jobs:
         path: output/test-binary-platform-x86_64-apple-darwin-target-x86_64-linux-musl
         if-no-files-found: error
   apple-darwin-aarch64-x86_64:
-    runs-on: macos-13-xlarge
+    runs-on: macos-14
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -142,7 +142,7 @@ jobs:
         path: output/musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-aarch64-x86_64-test-build:
-    runs-on: macos-13-xlarge
+    runs-on: macos-14
     needs:
     - apple-darwin-aarch64-x86_64
     steps:
@@ -259,7 +259,7 @@ jobs:
         path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-aarch64-aarch64:
-    runs-on: macos-13-xlarge
+    runs-on: macos-14
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
