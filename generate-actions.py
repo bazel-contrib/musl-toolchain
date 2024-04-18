@@ -411,8 +411,8 @@ def make_jobs(release, version):
     jobs = {}
 
     source_machines = [
-        #(OS.Linux, Architecture.X86_64, linux_x86_64_runner),
-        #(OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
+        (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
+        (OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
         (OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
     ]
 
