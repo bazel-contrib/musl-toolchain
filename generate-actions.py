@@ -132,7 +132,7 @@ darwin_x86_64_runner = BaseRunner(
 
 darwin_aarch64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-13-xlarge",
+        "runs-on": "macos-14",
     },
     setup_steps=_setup_darwin_steps,
 )
@@ -413,9 +413,7 @@ def make_jobs(release, version):
     source_machines = [
         (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
         (OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
-        # TODO: Re-enable arm64 builds when we work out the billing situation (these runners cost money to run on GitHub Actions).
-        # We may choose to bill this to bazel-contrib, or to try to move to bazel-ci.
-        #(OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
+        (OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
     ]
 
     target_os = OS.Linux
