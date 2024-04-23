@@ -26,10 +26,13 @@ fi
 
 working_directory="$(mktemp -d)"
 trap "rm -rf ${working_directory}" EXIT
-# Clone a fork which has Apple Silicon support - ideally https://github.com/richfelker/musl-cross-make/pull/129 would get merged at some point.
-git clone https://github.com/illicitonion/musl-cross-make.git "${working_directory}"
+# This fork contains several patches:
+#  * Apple Silicon support - this was taken from https://github.com/richfelker/musl-cross-make/pull/129
+#  * Statically link libintl and don't dynamically link libzstd - these avoid adding runtime dependencies to the musl toolchain which may not be present where people want to use the toolchain.
+#  * Fixes to support building with modern libc++ distributions, taken from https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111632
+git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_directory}"
 cd "${working_directory}"
-git checkout 2139b992da8bdc077267e8e357dbba2e9420a4f4
+git checkout 687e64a549b2992bea42bd4e6cdbd0d1bd829ddb
 
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}"
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" install
