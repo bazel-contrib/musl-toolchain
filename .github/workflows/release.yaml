@@ -316,6 +316,36 @@ jobs:
       with:
         name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         path: .
+    - name: Generate MODULE.bazel
+      run: "touch MODULE.bazel\n\ncat >MODULE.bazel <<'EOF'\nmodule(\n    name = \"\
+        toolchains_musl\",\n    version = \"${{github.ref_name}}\",\n)\n\nbazel_dep(name\
+        \ = \"bazel_features\", version = \"1.9.0\")\nbazel_dep(name = \"platforms\"\
+        , version = \"0.0.9\")\n\ntoolchains_musl = use_extension(\"//:toolchains_musl.bzl\"\
+        , \"toolchains_musl\")\nuse_repo(toolchains_musl, \"musl_toolchains_hub\"\
+        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
+    - name: Generate extensions.bzl
+      run: "touch toolchains_musl.bzl\n\ncat >toolchains_musl.bzl <<'EOF'\nload(\"\
+        @bazel_features//:features.bzl\", \"bazel_features\")\nload(\":repositories.bzl\"\
+        , \"load_musl_toolchains\")\n\ndef _toolchains_musl(module_ctx):\n    extra_exec_compatible_with\
+        \ = []\n    extra_target_compatible_with = []\n    for module in module_ctx.modules:\n\
+        \        if not module.tags.config:\n            continue\n        if not\
+        \ module.is_root:\n            fail(\"musl_toolchains.config can only be used\
+        \ from the root module. Add 'dev_dependency = True' to 'use_extension' to\
+        \ ignore it in non-root modules.\")\n        if len(module.tags.config) >\
+        \ 1:\n            fail(\n                \"Only one musl_toolchains.config\
+        \ tag is allowed, got\",\n                module.tags.config[0],\n       \
+        \         \"and\",\n                module.tags.config[1],\n            )\n\
+        \        config = module.tags.config[0]\n        extra_exec_compatible_with\
+        \ = config.extra_exec_compatible_with\n        extra_target_compatible_with\
+        \ = config.extra_target_compatible_with\n\n    load_musl_toolchains(\n   \
+        \     extra_exec_compatible_with = [str(label) for label in extra_exec_compatible_with],\n\
+        \        extra_target_compatible_with = [str(label) for label in extra_target_compatible_with],\n\
+        \    )\n\n    if bazel_features.external_deps.extension_metadata_has_reproducible:\n\
+        \        return module_ctx.extension_metadata(reproducible = True)\n    else:\n\
+        \        return None\n\n_config = tag_class(\n    attrs = {\n        \"extra_exec_compatible_with\"\
+        : attr.label_list(),\n        \"extra_target_compatible_with\": attr.label_list(),\n\
+        \    },\n)\n\ntoolchains_musl = module_extension(\n    implementation = _toolchains_musl,\n\
+        \    tag_classes = {\n        \"config\": _config,\n    },\n)\nEOF\n"
     - name: Generate toolchains.bzl
       run: "touch BUILD.bazel\n\ncat >toolchains.bzl <<EOF\ndef register_musl_toolchains():\n\
         \    native.register_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
@@ -390,14 +420,83 @@ jobs:
         ,\n        extra_exec_compatible_with = extra_exec_compatible_with,\n    \
         \    extra_target_compatible_with = extra_target_compatible_with,\n    )\n\
         EOF\n"
+    - name: Generate bcr_test/MODULE.bazel
+      run: "mkdir -p bcr_test\ntouch bcr_test/MODULE.bazel\n\ncat >bcr_test/MODULE.bazel\
+        \ <<'EOF'\nbazel_dep(name = \"toolchains_musl\")\nlocal_path_override(\n \
+        \   module_name = \"toolchains_musl\",\n    path = \"..\",\n)\n\nbazel_dep(name\
+        \ = \"aspect_bazel_lib\", version = \"2.7.7\")\n\ntoolchains_musl = use_extension(\"\
+        @toolchains_musl//:toolchains_musl.bzl\", \"toolchains_musl\", dev_dependency\
+        \ = True)\ntoolchains_musl.config(\n    extra_target_compatible_with = [\"\
+        //:musl_on\"],\n)\nEOF\n"
+    - name: Generate bcr_test/BUILD.bazel
+      run: "mkdir -p bcr_test\ntouch bcr_test/BUILD.bazel\n\ncat >bcr_test/BUILD.bazel\
+        \ <<'EOF2'\nload(\"@aspect_bazel_lib//lib:transitions.bzl\", \"platform_transition_binary\"\
+        )\n\npackage(default_visibility = [\"//visibility:public\"])\n\ngenrule(\n\
+        \    name = \"generate_source\",\n    outs = [\"main.cc\"],\n    cmd = \"\"\
+        \"cat >$@ <<EOF\n#include <stdio.h>\n\nint main(void) {\n  printf(\"Built\
+        \ on $$(uname) $$(uname -m)\\\\n\");\n  return 0;\n}\nEOF\n\"\"\",\n)\n\n\
+        cc_binary(\n    name = \"binary\",\n    srcs = [\"main.cc\"],\n    linkopts\
+        \ = [\"-static\"],\n    tags = [\"manual\"],\n)\n\nplatform_transition_binary(\n\
+        \    name = \"binary_linux_x86_64\",\n    binary = \":binary\",\n    target_platform\
+        \ = \":linux_x86_64\",\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_aarch64\"\
+        ,\n    binary = \":binary\",\n    target_platform = \":linux_aarch64\",\n\
+        )\n\nsh_test(\n    name = \"binary_test\",\n    srcs = [\"binary_test.sh\"\
+        ],\n    data = [\n        \":binary_linux_x86_64\",\n        \":binary_linux_aarch64\"\
+        ,\n    ],\n    env = {\n        \"BINARY_LINUX_X86_64\": \"$(rootpath :binary_linux_x86_64)\"\
+        ,\n        \"BINARY_LINUX_AARCH64\": \"$(rootpath :binary_linux_aarch64)\"\
+        ,\n    },\n)\n\nplatform(\n    name = \"linux_x86_64\",\n    constraint_values\
+        \ = [\n        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\"\
+        ,\n        \":musl_on\",\n    ],\n)\n\nplatform(\n    name = \"linux_aarch64\"\
+        ,\n    constraint_values = [\n        \"@platforms//cpu:aarch64\",\n     \
+        \   \"@platforms//os:linux\",\n        \":musl_on\",\n    ],\n)\n\nconstraint_setting(\n\
+        \    name = \"musl\",\n    default_constraint_value = \":musl_off\",\n)\n\
+        constraint_value(\n    name = \"musl_on\",\n    constraint_setting = \":musl\"\
+        ,\n)\nconstraint_value(\n    name = \"musl_off\",\n    constraint_setting\
+        \ = \":musl\",\n)\nEOF2\n"
+    - name: Generate bcr_test/binary_test.sh
+      run: 'mkdir -p bcr_test
+
+        touch bcr_test/binary_test.sh
+
+        chmod +x bcr_test/binary_test.sh
+
+
+        cat >bcr_test/binary_test.sh <<''EOF''
+
+        #!/usr/bin/env bash
+
+
+        set -euo pipefail
+
+
+        file "$BINARY_LINUX_X86_64" | grep ''statically linked'' || (echo "Binary
+        $BINARY_LINUX_X86_64 is not statically linked" && exit 1)
+
+        file "$BINARY_LINUX_X86_64" | grep ''x86-64'' || (echo "Binary $BINARY_LINUX_X86_64
+        is not x86-64" && exit 1)
+
+
+        file "$BINARY_LINUX_AARCH64" | grep ''statically linked'' || (echo "Binary
+        $BINARY_LINUX_AARCH64 is not statically linked" && exit 1)
+
+        file "$BINARY_LINUX_AARCH64" | grep ''aarch64'' || (echo "Binary $BINARY_LINUX_AARCH64
+        is not aarch64" && exit 1)
+
+
+        echo "All tests passed"
+
+        EOF
+
+        '
     - name: Generate release archive
-      run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz toolchains.bzl
-        repositories.bzl BUILD.bazel
+      run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz MODULE.bazel
+        toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel
+        bcr_test/BUILD.bazel bcr_test/binary_test.sh
     - name: Generate release body
       run: sha256=$(sha256sum musl_toolchain-${{github.ref_name}}.tar.gz | awk '{print
         $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'
-        ; sed -e "s#{sha256}#${sha256}#g" -e "s#{url}#${url}#g" release.txt.template
-        > release-notes.txt
+        ; version='${{github.ref_name}}'; sed -e "s#{sha256}#${sha256}#g" -e "s#{url}#${url}#g"
+        -e "s|{version}|${version#v}|g" release.txt.template > release-notes.txt
     - id: create_release
       name: Create release
       uses: softprops/action-gh-release@v1

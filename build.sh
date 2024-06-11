@@ -34,8 +34,8 @@ git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_direct
 cd "${working_directory}"
 git checkout 687e64a549b2992bea42bd4e6cdbd0d1bd829ddb
 
-TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}"
-TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" install
+TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 
 cd output
 

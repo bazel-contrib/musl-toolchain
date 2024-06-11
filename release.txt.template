@@ -1,6 +1,21 @@
-To use this release, past the following into your WORKSPACE file:
+To use this release, paste the following into your `MODULE.bazel` file:
 
+```starlark
+bazel_dep(name = "toolchains_musl", version = "{version}", dev_dependency = True)
 ```
+
+If you need to attach custom exec or target constraints to these toolchains, you can write:
+```starlark
+toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
+toolchains_musl.config(
+    extra_exec_compatible_with = ["//some/constraint:label"],
+    extra_target_compatible_with = ["@some//other/constraint:label"],
+)
+```
+
+If you are using `WORKSPACE`, paste the following instead:
+
+```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
