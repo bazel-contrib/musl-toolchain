@@ -8,3 +8,11 @@ bcr_test_module:
       platform: ${{ platform }}
       build_targets:
         - "//..."
+      build_flags:
+        - "--test_output=errors"
+        - "--verbose_failures"
+      test_targets:
+        - "//..."
+      test_flags:
+        - "--test_output=errors"
+        - "--verbose_failures"

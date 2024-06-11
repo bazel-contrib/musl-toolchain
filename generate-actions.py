@@ -346,9 +346,9 @@ EOF
         },
         {
             "name": "Generate extensions.bzl",
-            "run": """touch musl_toolchains.bzl
+            "run": """touch toolchains_musl.bzl
 
-cat >musl_toolchains.bzl <<'EOF'
+cat >toolchains_musl.bzl <<'EOF'
 load("@bazel_features//:features.bzl", "bazel_features")
 load(":repositories.bzl", "load_musl_toolchains")
 
@@ -356,8 +356,10 @@ def _toolchains_musl(module_ctx):
     extra_exec_compatible_with = []
     extra_target_compatible_with = []
     for module in module_ctx.modules:
-        if not module.is_root or not module.tags.config:
+        if not module.tags.config:
             continue
+        if not module.is_root:
+            fail("musl_toolchains.config can only be used from the root module. Add 'dev_dependency = True' to 'use_extension' to ignore it in non-root modules.")
         if len(module.tags.config) > 1:
             fail(
                 "Only one musl_toolchains.config tag is allowed, got",
@@ -448,6 +450,11 @@ local_path_override(
 )
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.7.7")
+
+toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
+toolchains_musl.config(
+    extra_target_compatible_with = ["//:musl_on"],
+)
 EOF
 """,
         },
@@ -458,6 +465,8 @@ touch bcr_test/BUILD.bazel
 
 cat >bcr_test/BUILD.bazel <<'EOF2'
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+
+package(default_visibility = ["//visibility:public"])
 
 genrule(
     name = "generate_source",
@@ -492,11 +501,25 @@ platform_transition_binary(
     target_platform = ":linux_aarch64",
 )
 
+sh_test(
+    name = "binary_test",
+    srcs = ["binary_test.sh"],
+    data = [
+        ":binary_linux_x86_64",
+        ":binary_linux_aarch64",
+    ],
+    env = {
+        "BINARY_LINUX_X86_64": "$(rootpath :binary_linux_x86_64)",
+        "BINARY_LINUX_AARCH64": "$(rootpath :binary_linux_aarch64)",
+    },
+)
+
 platform(
     name = "linux_x86_64",
     constraint_values = [
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
+        ":musl_on",
     ],
 )
 
@@ -505,14 +528,49 @@ platform(
     constraint_values = [
         "@platforms//cpu:aarch64",
         "@platforms//os:linux",
+        ":musl_on",
     ],
+)
+
+constraint_setting(
+    name = "musl",
+    default_constraint_value = ":musl_off",
+)
+constraint_value(
+    name = "musl_on",
+    constraint_setting = ":musl",
+)
+constraint_value(
+    name = "musl_off",
+    constraint_setting = ":musl",
 )
 EOF2
 ''',
         },
         {
+            "name": "Generate bcr_test/binary_test.sh",
+            "run": f"""mkdir -p bcr_test
+touch bcr_test/binary_test.sh
+chmod +x bcr_test/binary_test.sh
+
+cat >bcr_test/binary_test.sh <<'EOF'
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+file "$BINARY_LINUX_X86_64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_X86_64 is not statically linked" && exit 1)
+file "$BINARY_LINUX_X86_64" | grep 'x86-64' || (echo "Binary $BINARY_LINUX_X86_64 is not x86-64" && exit 1)
+
+file "$BINARY_LINUX_AARCH64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_AARCH64 is not statically linked" && exit 1)
+file "$BINARY_LINUX_AARCH64" | grep 'aarch64' || (echo "Binary $BINARY_LINUX_AARCH64 is not aarch64" && exit 1)
+
+echo "All tests passed"
+EOF
+""",
+        },
+        {
             "name": "Generate release archive",
-            "run": f"./deterministic-tar.sh {output_path} MODULE.bazel musl_toolchains.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel",
+            "run": f"./deterministic-tar.sh {output_path} MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
         },
     ]
 
