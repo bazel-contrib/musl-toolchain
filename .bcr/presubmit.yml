@@ -1,0 +1,10 @@
+bcr_test_module:
+  module_path: "bcr_test"
+  matrix:
+    platform: ["centos7", "debian10", "macos", "macos_arm64", "ubuntu2004"]
+  tasks:
+    run_tests:
+      name: "Run test module"
+      platform: ${{ platform }}
+      build_targets:
+        - "//..."

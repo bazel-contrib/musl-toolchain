@@ -1,6 +1,12 @@
-To use this release, past the following into your WORKSPACE file:
+To use this release, paste the following into your `MODULE.bazel` file:
 
+```starlark
+bazel_dep(name = "toolchains_musl", version = "{version}", dev_dependency = True)
 ```
+
+If you are using `WORKSPACE`, paste the following instead:
+
+```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(

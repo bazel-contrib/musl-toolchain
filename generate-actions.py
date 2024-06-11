@@ -325,6 +325,77 @@ def generate_release_archive(toolchain_infos, output_path, version):
     )
     return [
         {
+            "name": "Generate MODULE.bazel",
+            "run": f"""touch MODULE.bazel
+
+cat >MODULE.bazel <<'EOF'
+module(
+    name = "toolchains_musl",
+    version = "{version.removeprefix('v')}",
+)
+
+bazel_dep(name = "bazel_features", version = "1.9.0")
+bazel_dep(name = "platforms", version = "0.0.9")
+
+toolchains_musl = use_extension("//:toolchains_musl.bzl", "toolchains_musl")
+use_repo(toolchains_musl, "musl_toolchains_hub")
+
+register_toolchains("@musl_toolchains_hub//:all")
+EOF
+""",
+        },
+        {
+            "name": "Generate extensions.bzl",
+            "run": """touch musl_toolchains.bzl
+
+cat >musl_toolchains.bzl <<'EOF'
+load("@bazel_features//:features.bzl", "bazel_features")
+load(":repositories.bzl", "load_musl_toolchains")
+
+def _toolchains_musl(module_ctx):
+    extra_exec_compatible_with = []
+    extra_target_compatible_with = []
+    for module in module_ctx.modules:
+        if not module.is_root or not module.tags.config:
+            continue
+        if len(module.tags.config) > 1:
+            fail(
+                "Only one musl_toolchains.config tag is allowed, got",
+                module.tags.config[0],
+                "and",
+                module.tags.config[1],
+            )
+        config = module.tags.config[0]
+        extra_exec_compatible_with = config.extra_exec_compatible_with
+        extra_target_compatible_with = config.extra_target_compatible_with
+
+    load_musl_toolchains(
+        extra_exec_compatible_with = [str(label) for label in extra_exec_compatible_with],
+        extra_target_compatible_with = [str(label) for label in extra_target_compatible_with],
+    )
+
+    if bazel_features.external_deps.extension_metadata_has_reproducible:
+        return module_ctx.extension_metadata(reproducible = True)
+    else:
+        return None
+
+_config = tag_class(
+    attrs = {
+        "extra_exec_compatible_with": attr.label_list(),
+        "extra_target_compatible_with": attr.label_list(),
+    },
+)
+
+toolchains_musl = module_extension(
+    implementation = _toolchains_musl,
+    tag_classes = {
+        "config": _config,
+    },
+)
+EOF
+""",
+        },
+        {
             "name": "Generate toolchains.bzl",
             "run": f"""touch BUILD.bazel
 
@@ -365,8 +436,83 @@ EOF
 """,
         },
         {
+            "name": "Generate bcr_test/MODULE.bazel",
+            "run": f"""mkdir -p bcr_test
+touch bcr_test/MODULE.bazel
+
+cat >bcr_test/MODULE.bazel <<'EOF'
+bazel_dep(name = "toolchains_musl")
+local_path_override(
+    module_name = "toolchains_musl",
+    path = "..",
+)
+
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.7")
+EOF
+""",
+        },
+        {
+            "name": "Generate bcr_test/BUILD.bazel",
+            "run": '''mkdir -p bcr_test
+touch bcr_test/BUILD.bazel
+
+cat >bcr_test/BUILD.bazel <<'EOF2'
+load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+
+genrule(
+    name = "generate_source",
+    outs = ["main.cc"],
+    cmd = """cat >$@ <<EOF
+#include <stdio.h>
+
+int main(void) {
+  printf("Built on $$(uname) $$(uname -m)\\\\n");
+  return 0;
+}
+EOF
+""",
+)
+
+cc_binary(
+    name = "binary",
+    srcs = ["main.cc"],
+    linkopts = ["-static"],
+    tags = ["manual"],
+)
+
+platform_transition_binary(
+    name = "binary_linux_x86_64",
+    binary = ":binary",
+    target_platform = ":linux_x86_64",
+)
+
+platform_transition_binary(
+    name = "binary_linux_aarch64",
+    binary = ":binary",
+    target_platform = ":linux_aarch64",
+)
+
+platform(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
+    name = "linux_aarch64",
+    constraint_values = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+)
+EOF2
+''',
+        },
+        {
             "name": "Generate release archive",
-            "run": f"./deterministic-tar.sh {output_path} toolchains.bzl repositories.bzl BUILD.bazel",
+            "run": f"./deterministic-tar.sh {output_path} MODULE.bazel musl_toolchains.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel",
         },
     ]
 
@@ -391,7 +537,7 @@ def upload_release_archive_artifact(filename):
 def generate_release_body(release_body_path, release_archive_path, version):
     return {
         "name": "Generate release body",
-        "run": f"sha256=$(sha256sum {release_archive_path} | awk '{{print $1}}') ; url='{download_url_for(release_archive_path, version)}' ; sed -e \"s#{{sha256}}#${{sha256}}#g\" -e \"s#{{url}}#${{url}}#g\" release.txt.template > {release_body_path}",
+        "run": f"sha256=$(sha256sum {release_archive_path} | awk '{{print $1}}') ; url='{download_url_for(release_archive_path, version)}' ; version='{version}'; sed -e \"s#{{sha256}}#${{sha256}}#g\" -e \"s#{{url}}#${{url}}#g\" -e \"s|{{version}}|${{version#v}}|g\" release.txt.template > {release_body_path}",
     }
 
 
