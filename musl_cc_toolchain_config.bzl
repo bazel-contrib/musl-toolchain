@@ -81,6 +81,10 @@ def _impl(ctx):
         ],
     )
 
+    gcc_quoting_for_param_files_feature = feature(name = "gcc_quoting_for_param_files", enabled = True)
+
+    archive_param_file_feature = feature(name = "archive_param_file", enabled = True)
+
     unfiltered_compile_flags_feature = feature(
         name = "unfiltered_compile_flags",
         enabled = True,
@@ -204,6 +208,27 @@ def _impl(ctx):
         ],
     )
 
+    random_seed_feature = feature(
+        name = "random_seed",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [
+                    _C_COMPILE_ACTION_NAME,
+                    _CPP_COMPILE_ACTION_NAME,
+                    _CPP_MODULE_CODEGEN_ACTION_NAME,
+                    _CPP_MODULE_COMPILE_ACTION_NAME,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["-frandom-seed=%{output_file}"],
+                        expand_if_available = "output_file",
+                    ),
+                ],
+            ),
+        ],
+    )
+
     opt_feature = feature(name = "opt")
 
     supports_dynamic_linker_feature = feature(name = "supports_dynamic_linker", enabled = True)
@@ -279,6 +304,73 @@ def _impl(ctx):
         ],
     )
 
+    generate_linkmap_feature = feature(
+        name = "generate_linkmap",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    _CPP_LINK_EXECUTABLE_ACTION_NAME,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = [
+                            "-Wl,-Map=%{output_execpath}.map",
+                        ],
+                        expand_if_available = "output_execpath",
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    coverage_feature = feature(
+        name = "coverage",
+        provides = ["profile"],
+        flag_sets = [
+            flag_set(
+                actions = [
+                    _PREPROCESS_ASSEMBLE_ACTION_NAME,
+                    _C_COMPILE_ACTION_NAME,
+                    _CPP_COMPILE_ACTION_NAME,
+                    _CPP_HEADER_PARSING_ACTION_NAME,
+                    _CPP_MODULE_COMPILE_ACTION_NAME,
+                ],
+                flag_groups = ([
+                    flag_group(flags = [
+                        "--coverage",
+                    ]),
+                ]),
+            ),
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = ([
+                    flag_group(flags = [
+                        "--coverage",
+                    ]),
+                ]),
+            ),
+        ],
+    )
+
+    treat_warnings_as_errors_feature = feature(
+        name = "treat_warnings_as_errors",
+        flag_sets = [
+            flag_set(
+                actions = [
+                    _C_COMPILE_ACTION_NAME,
+                    _CPP_COMPILE_ACTION_NAME,
+                ],
+                flag_groups = [flag_group(flags = ["-Werror"])],
+            ),
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [flag_group(
+                    flags = ["-Wl,-fatal-warnings"],
+                )],
+            ),
+        ],
+    )
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = target_cpu + "-musl-toolchain",
@@ -292,6 +384,9 @@ def _impl(ctx):
         tool_paths = tool_paths,
         action_configs = [objcopy_embed_data_action],
         features = [
+            random_seed_feature,
+            generate_linkmap_feature,
+            coverage_feature,
             default_compile_flags_feature,
             default_link_flags_feature,
             supports_dynamic_linker_feature,
@@ -302,6 +397,9 @@ def _impl(ctx):
             user_compile_flags_feature,
             sysroot_feature,
             unfiltered_compile_flags_feature,
+            treat_warnings_as_errors_feature,
+            archive_param_file_feature,
+            gcc_quoting_for_param_files_feature,
         ],
     )
 
