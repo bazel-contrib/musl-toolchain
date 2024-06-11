@@ -347,6 +347,11 @@ EOF
 """,
         },
         {
+            "name": "Generate WORKSPACE",
+            "run": f"""touch WORKSPACE
+""",
+        },
+        {
             "name": "Generate extensions.bzl",
             "run": """touch toolchains_musl.bzl
 
@@ -487,7 +492,6 @@ EOF
 cc_binary(
     name = "binary",
     srcs = ["main.cc"],
-    linkopts = ["-static"],
     tags = ["manual"],
 )
 
@@ -560,11 +564,11 @@ cat >bcr_test/binary_test.sh <<'EOF'
 
 set -euo pipefail
 
-file "$BINARY_LINUX_X86_64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_X86_64 is not statically linked" && exit 1)
-file "$BINARY_LINUX_X86_64" | grep 'x86-64' || (echo "Binary $BINARY_LINUX_X86_64 is not x86-64" && exit 1)
+file "$BINARY_LINUX_X86_64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_X86_64 is not statically linked: $(file "$BINARY_LINUX_X86_64")" && exit 1)
+file "$BINARY_LINUX_X86_64" | grep 'x86-64' || (echo "Binary $BINARY_LINUX_X86_64 is not x86-64: $(file "$BINARY_LINUX_X86_64")" && exit 1)
 
-file "$BINARY_LINUX_AARCH64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_AARCH64 is not statically linked" && exit 1)
-file "$BINARY_LINUX_AARCH64" | grep 'aarch64' || (echo "Binary $BINARY_LINUX_AARCH64 is not aarch64" && exit 1)
+file "$BINARY_LINUX_AARCH64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_AARCH64 is not statically linked: $(file "$BINARY_LINUX_AARCH64")" && exit 1)
+file "$BINARY_LINUX_AARCH64" | grep 'aarch64' || (echo "Binary $BINARY_LINUX_AARCH64 is not aarch64: $(file "$BINARY_LINUX_AARCH64")" && exit 1)
 
 echo "All tests passed"
 EOF
@@ -572,7 +576,7 @@ EOF
         },
         {
             "name": "Generate release archive",
-            "run": f"./deterministic-tar.sh {output_path} MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
+            "run": f"./deterministic-tar.sh {output_path} WORKSPACE MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
         },
     ]
 
@@ -681,8 +685,8 @@ def make_jobs(release, version):
                         source_os, source_arch, target_arch
                     ),
                     {
-                        "name": "Build test binary with musl",
-                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary --platforms=//config:platform --extra_toolchains=//config:musl_toolchain --incompatible_enable_cc_toolchain_resolution",
+                        "name": "Build test binary and test with musl",
+                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl_toolchain --incompatible_enable_cc_toolchain_resolution",
                     },
                     {
                         "name": "Move test binary",
