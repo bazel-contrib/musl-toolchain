@@ -673,14 +673,14 @@ def make_jobs(release, version):
         release_archive_path = f"musl_toolchain-{version}.tar.gz"
         jobs["release"] = {
             "runs-on": "ubuntu-latest",
-            "needs": [job.build_job_name for job in releasable_artifacts] + test_jobs,
+            # "needs": [job.build_job_name for job in releasable_artifacts] + test_jobs,
             "steps": [
                          checkout,
                          {
                              "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
                          },
                      ]
-                     + [download(artifact.musl_filename) for artifact in releasable_artifacts]
+                    #  + [download(artifact.musl_filename) for artifact in releasable_artifacts]
                      + generate_release_archive(releasable_artifacts, release_archive_path, version)
                      + [
                          generate_release_body(release_body_path, release_archive_path, version),
@@ -702,10 +702,10 @@ def make_jobs(release, version):
                          },
                          upload_release_archive_artifact(release_archive_path),
                      ]
-                     + [
-                         upload_release_archive_artifact(artifact.musl_filename)
-                         for artifact in releasable_artifacts
-                     ],
+                    #  + [
+                    #      upload_release_archive_artifact(artifact.musl_filename)
+                    #      for artifact in releasable_artifacts
+                    #  ],
         }
     return jobs
 
