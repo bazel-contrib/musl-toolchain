@@ -328,10 +328,12 @@ def generate_release_archive(toolchain_infos, output_path, version):
             "name": "Generate MODULE.bazel",
             "run": f"""touch MODULE.bazel
 
-cat >MODULE.bazel <<'EOF'
+version="{version}"
+
+cat >MODULE.bazel <<EOF
 module(
     name = "toolchains_musl",
-    version = "{version.removeprefix('v')}",
+    version = "${{version#v}}",
 )
 
 bazel_dep(name = "bazel_features", version = "1.9.0")

@@ -317,12 +317,13 @@ jobs:
         name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Generate MODULE.bazel
-      run: "touch MODULE.bazel\n\ncat >MODULE.bazel <<'EOF'\nmodule(\n    name = \"\
-        toolchains_musl\",\n    version = \"${{github.ref_name}}\",\n)\n\nbazel_dep(name\
-        \ = \"bazel_features\", version = \"1.9.0\")\nbazel_dep(name = \"platforms\"\
-        , version = \"0.0.9\")\n\ntoolchains_musl = use_extension(\"//:toolchains_musl.bzl\"\
-        , \"toolchains_musl\")\nuse_repo(toolchains_musl, \"musl_toolchains_hub\"\
-        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
+      run: "touch MODULE.bazel\n\nversion=\"${{github.ref_name}}\"\n\ncat >MODULE.bazel\
+        \ <<EOF\nmodule(\n    name = \"toolchains_musl\",\n    version = \"${version#v}\"\
+        ,\n)\n\nbazel_dep(name = \"bazel_features\", version = \"1.9.0\")\nbazel_dep(name\
+        \ = \"platforms\", version = \"0.0.9\")\n\ntoolchains_musl = use_extension(\"\
+        //:toolchains_musl.bzl\", \"toolchains_musl\")\nuse_repo(toolchains_musl,\
+        \ \"musl_toolchains_hub\")\n\nregister_toolchains(\"@musl_toolchains_hub//:all\"\
+        )\nEOF\n"
     - name: Generate extensions.bzl
       run: "touch toolchains_musl.bzl\n\ncat >toolchains_musl.bzl <<'EOF'\nload(\"\
         @bazel_features//:features.bzl\", \"bazel_features\")\nload(\":repositories.bzl\"\
