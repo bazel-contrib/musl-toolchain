@@ -246,6 +246,28 @@ def _impl(ctx):
 
     dbg_feature = feature(name = "dbg")
 
+    fully_static_link_feature = feature(
+        name = "fully_static_link",
+        enabled = True,
+        flag_sets = [
+            flag_set(
+                actions = [
+                    _CPP_LINK_EXECUTABLE_ACTION_NAME,
+                    _CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
+                ],
+                flag_groups = [
+                    flag_group(
+                        flags = ["-static"],
+                        # Executables with dynamic libraries in deps can't be fully static.
+                        # This includes both cc_test on Linux with default --dynamic_mode as well as
+                        # e.g. cc_binary with dynamic_deps. Since tests are rarely cross-compiled,
+                        expand_if_false = "runtime_library_search_directories",
+                    ),
+                ],
+            ),
+        ],
+    )
+
     user_compile_flags_feature = feature(
         name = "user_compile_flags",
         enabled = True,
@@ -394,6 +416,7 @@ def _impl(ctx):
             objcopy_embed_flags_feature,
             opt_feature,
             dbg_feature,
+            fully_static_link_feature,
             user_compile_flags_feature,
             sysroot_feature,
             unfiltered_compile_flags_feature,

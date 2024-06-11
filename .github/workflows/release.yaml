@@ -59,9 +59,9 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary with musl
+    - name: Build test binary and test with musl
       run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
+        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
         --incompatible_enable_cc_toolchain_resolution
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
@@ -115,9 +115,9 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary with musl
+    - name: Build test binary and test with musl
       run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
+        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
         --incompatible_enable_cc_toolchain_resolution
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-apple-darwin-target-x86_64-linux-musl
@@ -171,9 +171,9 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary with musl
+    - name: Build test binary and test with musl
       run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
+        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl_toolchain
         --incompatible_enable_cc_toolchain_resolution
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl
@@ -324,6 +324,10 @@ jobs:
         //:toolchains_musl.bzl\", \"toolchains_musl\")\nuse_repo(toolchains_musl,\
         \ \"musl_toolchains_hub\")\n\nregister_toolchains(\"@musl_toolchains_hub//:all\"\
         )\nEOF\n"
+    - name: Generate WORKSPACE
+      run: 'touch WORKSPACE
+
+        '
     - name: Generate extensions.bzl
       run: "touch toolchains_musl.bzl\n\ncat >toolchains_musl.bzl <<'EOF'\nload(\"\
         @bazel_features//:features.bzl\", \"bazel_features\")\nload(\":repositories.bzl\"\
@@ -436,13 +440,13 @@ jobs:
         \    name = \"generate_source\",\n    outs = [\"main.cc\"],\n    cmd = \"\"\
         \"cat >$@ <<EOF\n#include <stdio.h>\n\nint main(void) {\n  printf(\"Built\
         \ on $$(uname) $$(uname -m)\\\\n\");\n  return 0;\n}\nEOF\n\"\"\",\n)\n\n\
-        cc_binary(\n    name = \"binary\",\n    srcs = [\"main.cc\"],\n    linkopts\
-        \ = [\"-static\"],\n    tags = [\"manual\"],\n)\n\nplatform_transition_binary(\n\
-        \    name = \"binary_linux_x86_64\",\n    binary = \":binary\",\n    target_platform\
-        \ = \":linux_x86_64\",\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_aarch64\"\
-        ,\n    binary = \":binary\",\n    target_platform = \":linux_aarch64\",\n\
-        )\n\nsh_test(\n    name = \"binary_test\",\n    srcs = [\"binary_test.sh\"\
-        ],\n    data = [\n        \":binary_linux_x86_64\",\n        \":binary_linux_aarch64\"\
+        cc_binary(\n    name = \"binary\",\n    srcs = [\"main.cc\"],\n    tags =\
+        \ [\"manual\"],\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_x86_64\"\
+        ,\n    binary = \":binary\",\n    target_platform = \":linux_x86_64\",\n)\n\
+        \nplatform_transition_binary(\n    name = \"binary_linux_aarch64\",\n    binary\
+        \ = \":binary\",\n    target_platform = \":linux_aarch64\",\n)\n\nsh_test(\n\
+        \    name = \"binary_test\",\n    srcs = [\"binary_test.sh\"],\n    data =\
+        \ [\n        \":binary_linux_x86_64\",\n        \":binary_linux_aarch64\"\
         ,\n    ],\n    env = {\n        \"BINARY_LINUX_X86_64\": \"$(rootpath :binary_linux_x86_64)\"\
         ,\n        \"BINARY_LINUX_AARCH64\": \"$(rootpath :binary_linux_aarch64)\"\
         ,\n    },\n)\n\nplatform(\n    name = \"linux_x86_64\",\n    constraint_values\
@@ -471,17 +475,19 @@ jobs:
 
 
         file "$BINARY_LINUX_X86_64" | grep ''statically linked'' || (echo "Binary
-        $BINARY_LINUX_X86_64 is not statically linked" && exit 1)
+        $BINARY_LINUX_X86_64 is not statically linked: $(file "$BINARY_LINUX_X86_64")"
+        && exit 1)
 
         file "$BINARY_LINUX_X86_64" | grep ''x86-64'' || (echo "Binary $BINARY_LINUX_X86_64
-        is not x86-64" && exit 1)
+        is not x86-64: $(file "$BINARY_LINUX_X86_64")" && exit 1)
 
 
         file "$BINARY_LINUX_AARCH64" | grep ''statically linked'' || (echo "Binary
-        $BINARY_LINUX_AARCH64 is not statically linked" && exit 1)
+        $BINARY_LINUX_AARCH64 is not statically linked: $(file "$BINARY_LINUX_AARCH64")"
+        && exit 1)
 
         file "$BINARY_LINUX_AARCH64" | grep ''aarch64'' || (echo "Binary $BINARY_LINUX_AARCH64
-        is not aarch64" && exit 1)
+        is not aarch64: $(file "$BINARY_LINUX_AARCH64")" && exit 1)
 
 
         echo "All tests passed"
@@ -490,9 +496,9 @@ jobs:
 
         '
     - name: Generate release archive
-      run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz MODULE.bazel
-        toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel
-        bcr_test/BUILD.bazel bcr_test/binary_test.sh
+      run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz WORKSPACE
+        MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel
+        bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh
     - name: Generate release body
       run: sha256=$(sha256sum musl_toolchain-${{github.ref_name}}.tar.gz | awk '{print
         $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'
