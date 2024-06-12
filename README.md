@@ -8,6 +8,8 @@ This toolchain allows cross-compiling binaries for Linux from various platforms.
 
 Setup instructions are available with [each release](https://github.com/bazel-contrib/musl-toolchain/releases).
 
+`--incompatible_enable_cc_toolchain_resolution` is required with Bazel 6.
+
 ## Usage
 
 The toolchain automatically enables the `fully_static_link` feature to produce statically linked binaries that run anywhere.
