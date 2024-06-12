@@ -32,7 +32,7 @@ trap "rm -rf ${working_directory}" EXIT
 #  * Fixes to support building with modern libc++ distributions, taken from https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111632
 git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_directory}"
 cd "${working_directory}"
-git checkout 687e64a549b2992bea42bd4e6cdbd0d1bd829ddb
+git checkout e5cd948aeeaef7186130a7376d8bc5ee08cb713d
 
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
