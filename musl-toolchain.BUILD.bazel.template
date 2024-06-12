@@ -37,7 +37,7 @@ cc_toolchain(
     linker_files = ":all_files",
     objcopy_files = ":musl_objcopy_files",
     strip_files = ":musl_strip_files",
-    supports_param_files = 0,
+    supports_param_files = True,
     toolchain_config = ":k8_musl_toolchain_config",
     toolchain_identifier = "k8-musl-toolchain",
 )
