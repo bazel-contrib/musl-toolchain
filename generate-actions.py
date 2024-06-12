@@ -564,11 +564,11 @@ cat >bcr_test/binary_test.sh <<'EOF'
 
 set -euo pipefail
 
-file "$BINARY_LINUX_X86_64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_X86_64 is not statically linked: $(file "$BINARY_LINUX_X86_64")" && exit 1)
-file "$BINARY_LINUX_X86_64" | grep 'x86-64' || (echo "Binary $BINARY_LINUX_X86_64 is not x86-64: $(file "$BINARY_LINUX_X86_64")" && exit 1)
+file -L "$BINARY_LINUX_X86_64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_X86_64 is not statically linked: $(file -L "$BINARY_LINUX_X86_64")" && exit 1)
+file -L "$BINARY_LINUX_X86_64" | grep 'x86-64' || (echo "Binary $BINARY_LINUX_X86_64 is not x86-64: $(file -L "$BINARY_LINUX_X86_64")" && exit 1)
 
-file "$BINARY_LINUX_AARCH64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_AARCH64 is not statically linked: $(file "$BINARY_LINUX_AARCH64")" && exit 1)
-file "$BINARY_LINUX_AARCH64" | grep 'aarch64' || (echo "Binary $BINARY_LINUX_AARCH64 is not aarch64: $(file "$BINARY_LINUX_AARCH64")" && exit 1)
+file -L "$BINARY_LINUX_AARCH64" | grep 'statically linked' || (echo "Binary $BINARY_LINUX_AARCH64 is not statically linked: $(file -L "$BINARY_LINUX_AARCH64")" && exit 1)
+file -L "$BINARY_LINUX_AARCH64" | grep 'aarch64' || (echo "Binary $BINARY_LINUX_AARCH64 is not aarch64: $(file -L "$BINARY_LINUX_AARCH64")" && exit 1)
 
 echo "All tests passed"
 EOF

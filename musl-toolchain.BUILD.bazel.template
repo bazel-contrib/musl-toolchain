@@ -24,6 +24,11 @@ filegroup(
 
 filegroup(name = "empty")
 
+filegroup(
+    name = "dynamic_runtime_lib",
+    srcs = glob(["x86_64-linux-musl/lib/*.so*"]),
+)
+
 musl_cc_toolchain_config(name = "k8_musl_toolchain_config", target_arch = "{{target_arch}}")
 
 cc_toolchain(
@@ -40,4 +45,7 @@ cc_toolchain(
     supports_param_files = True,
     toolchain_config = ":k8_musl_toolchain_config",
     toolchain_identifier = "k8-musl-toolchain",
+    dynamic_runtime_lib = ":dynamic_runtime_lib",
+    # Linked in automatically by the toolchain.
+    static_runtime_lib = ":empty",
 )

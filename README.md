@@ -4,6 +4,16 @@
 
 This toolchain allows cross-compiling binaries for Linux from various platforms. It can be used to produce binaries which don't dynamically link `libc`, by statically linking `musl`'s `libc` implementation.
 
+## Setup
+
+Setup instructions are available with [each release](https://github.com/bazel-contrib/musl-toolchain/releases).
+
+## Usage
+
+The toolchain automatically enables the `fully_static_link` feature to produce statically linked binaries that run anywhere.
+`cc_binary` targets with dynamic library dependencies (e.g. `dynamic_deps` or `cc_import`s) as well as `cc_test` targets with `--dynamic_mode` at its default value will be linked dynamically. Such binaries require the `musl` dynamic linker to be present at `/lib/ld-musl-<arch>.so.1` on the target system (i.e. the host when running `bazel test` on Linux).
+Since the path to the dynamic linker is hardcoded into the binary as an absolute path, there is no way to supply it hermetically.
+
 ## Comparison with other `cc_toolchain` implementations
 
 ### [aspect-build/gcc-toolchain](https://github.com/aspect-build/gcc-toolchain)

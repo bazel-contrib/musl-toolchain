@@ -246,6 +246,11 @@ def _impl(ctx):
 
     dbg_feature = feature(name = "dbg")
 
+    static_link_cpp_runtimes_feature = feature(
+        name = "static_link_cpp_runtimes",
+        enabled = True,
+    )
+
     fully_static_link_feature = feature(
         name = "fully_static_link",
         enabled = True,
@@ -345,6 +350,33 @@ def _impl(ctx):
         ],
     )
 
+    # The default implementation of this feature uses the Google-internal
+    # $EXEC_ORIGIN, which is not available in the open-source dynamic linker.
+    runtime_library_search_directories_feature = feature(
+        name = "runtime_library_search_directories",
+        flag_sets = [
+            flag_set(
+                actions = all_link_actions,
+                flag_groups = [
+                    flag_group(
+                        iterate_over = "runtime_library_search_directories",
+                        flag_groups = [
+                            flag_group(
+                                flags = [
+                                    "-Xlinker",
+                                    "-rpath",
+                                    "-Xlinker",
+                                    "$ORIGIN/%{runtime_library_search_directories}",
+                                ],
+                            ),
+                        ],
+                        expand_if_available = "runtime_library_search_directories",
+                    ),
+                ],
+            ),
+        ],
+    )
+
     coverage_feature = feature(
         name = "coverage",
         provides = ["profile"],
@@ -408,6 +440,7 @@ def _impl(ctx):
         features = [
             random_seed_feature,
             generate_linkmap_feature,
+            runtime_library_search_directories_feature,
             coverage_feature,
             default_compile_flags_feature,
             default_link_flags_feature,
@@ -416,6 +449,7 @@ def _impl(ctx):
             objcopy_embed_flags_feature,
             opt_feature,
             dbg_feature,
+            static_link_cpp_runtimes_feature,
             fully_static_link_feature,
             user_compile_flags_feature,
             sysroot_feature,
