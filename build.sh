@@ -39,6 +39,11 @@ TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netc
 
 cd output
 
+# The Linux binaries are very large if not stripped.
+if [[ "Linux" == "$(uname)" ]]; then
+  find bin libexec -type f -executable -exec strip {} \;
+fi
+
 cp "${this_dir}/musl_cc_toolchain_config.bzl" ./
 sed -e "s#{{target_arch}}#${TARGET_ARCH}#g" "${this_dir}/musl-toolchain.BUILD.bazel.template" > ./BUILD.bazel
 
