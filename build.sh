@@ -44,14 +44,16 @@ if [[ "Linux" == "$(uname)" ]]; then
   find bin libexec -type f -executable -exec strip {} \;
 fi
 
+output_name_without_extension="musl-${MUSL_VERSION}-platform-${PLATFORM}-target-${TARGET}"
+
 cp "${this_dir}/musl_cc_toolchain_config.bzl" ./
-sed -e "s#{{target_arch}}#${TARGET_ARCH}#g" "${this_dir}/musl-toolchain.BUILD.bazel.template" > ./BUILD.bazel
+sed -e "s#{{target_arch}}#${TARGET_ARCH}#g" -e "s#{{toolchain_name}}#${output_name_without_extension//./_}#g" "${this_dir}/musl-toolchain.BUILD.bazel.template" > ./BUILD.bazel
 
 included_files=(musl_cc_toolchain_config.bzl BUILD.bazel bin include lib libexec "${TARGET}")
 
 output_dir="${this_dir}/output"
 mkdir -p "${output_dir}"
-file_name="musl-${MUSL_VERSION}-platform-${PLATFORM}-target-${TARGET}.tar.gz"
+file_name="${output_name_without_extension}.tar.gz"
 output_file="${output_dir}/${file_name}"
 "${this_dir}/deterministic-tar.sh" "${output_file}" "${included_files[@]}"
 

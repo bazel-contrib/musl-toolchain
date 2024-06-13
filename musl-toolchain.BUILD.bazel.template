@@ -32,7 +32,7 @@ filegroup(
 musl_cc_toolchain_config(name = "k8_musl_toolchain_config", target_arch = "{{target_arch}}")
 
 cc_toolchain(
-    name = "musl_toolchain",
+    name = "{{toolchain_name}}",
     all_files = ":all_files",
     ar_files = ":musl_ar_files",
     as_files = ":all_files",

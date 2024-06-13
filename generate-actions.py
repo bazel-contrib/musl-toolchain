@@ -169,10 +169,19 @@ def get_platform_sha256sum(os: OS):
             return "shasum -a 256"
 
 
+def musl_filename_without_extension(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:
+    return f"musl-1.2.3-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
+
+
+def musl_toolchain_target_name(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:
+    return musl_filename_without_extension(source_os, source_arch, target_arch).replace(".", "_")
+
+
 def generate_builder_workspace_config_build_file(
     source_os: OS, source_arch: Architecture, target_arch: Architecture
 ):
-    content = generate_toolchain("musl_toolchain", source_arch, source_os, target_arch, wrap_in_triple_quotes=False)
+    toolchain_name = musl_toolchain_target_name(source_os, source_arch, target_arch).replace(".", "_")
+    content = generate_toolchain(toolchain_name, source_arch, source_os, target_arch, wrap_in_triple_quotes=False)
     content += f"""
 platform(
     name = "platform",
@@ -191,11 +200,13 @@ EOF
     }
 
 
-def generate_builder_workspace_file(source_os, musl_filename):
+def generate_builder_workspace_file(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:
+    musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
+    repository_name = musl_toolchain_target_name(source_os, source_arch, target_arch)
     content = f"""load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "musl_toolchain",
+    name = "{repository_name}",
     sha256 = "$({get_platform_sha256sum(source_os)} {musl_filename} | awk '{{print $1}}')",
     url = "file://$(pwd)/{musl_filename}",
 )
@@ -277,7 +288,7 @@ def generate_toolchain(
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
 
     to_return += f""",
-    toolchain = "@{repo_name}//:musl_toolchain",
+    toolchain = "@{repo_name}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 """
@@ -641,7 +652,7 @@ def make_jobs(release, version):
             build_job_name = (
                 f"{source_os.for_musl}-{source_arch.for_musl}-{target_arch.for_musl}"
             )
-            musl_filename = f"musl-1.2.3-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl.tar.gz"
+            musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
             jobs[build_job_name] = runner.top_level_properties | {
                 "steps": [
                              checkout,
@@ -680,13 +691,13 @@ def make_jobs(release, version):
                     checkout,
                     download(musl_filename),
                     install_bazel(source_os, source_arch),
-                    generate_builder_workspace_file(source_os, musl_filename),
+                    generate_builder_workspace_file(source_os, source_arch, target_arch),
                     generate_builder_workspace_config_build_file(
                         source_os, source_arch, target_arch
                     ),
                     {
                         "name": "Build test binary and test with musl",
-                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl_toolchain --incompatible_enable_cc_toolchain_resolution",
+                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:" + musl_toolchain_target_name(source_os, source_arch, target_arch) + " --incompatible_enable_cc_toolchain_resolution",
                     },
                     {
                         "name": "Move test binary",
