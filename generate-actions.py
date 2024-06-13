@@ -277,7 +277,7 @@ def generate_toolchain(
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
 
     to_return += f""",
-    toolchain = "@{repo_name}//:musl_toolchain",
+    toolchain = "@{repo_name}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 """
