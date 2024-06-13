@@ -200,11 +200,13 @@ EOF
     }
 
 
-def generate_builder_workspace_file(source_os, musl_filename):
+def generate_builder_workspace_file(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:
+    musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
+    repository_name = musl_toolchain_target_name(source_os, source_arch, target_arch)
     content = f"""load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "musl_toolchain",
+    name = "{repository_name}",
     sha256 = "$({get_platform_sha256sum(source_os)} {musl_filename} | awk '{{print $1}}')",
     url = "file://$(pwd)/{musl_filename}",
 )
@@ -689,7 +691,7 @@ def make_jobs(release, version):
                     checkout,
                     download(musl_filename),
                     install_bazel(source_os, source_arch),
-                    generate_builder_workspace_file(source_os, musl_filename),
+                    generate_builder_workspace_file(source_os, source_arch, target_arch),
                     generate_builder_workspace_config_build_file(
                         source_os, source_arch, target_arch
                     ),

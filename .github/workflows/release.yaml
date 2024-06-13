@@ -45,8 +45,8 @@ jobs:
         && chmod 0755 /usr/local/bin/bazel
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl_toolchain\",\n   \
-        \ sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
@@ -102,8 +102,8 @@ jobs:
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl_toolchain\",\n   \
-        \ sha256 = \"$(shasum -a 256 musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
@@ -159,8 +159,8 @@ jobs:
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl_toolchain\",\n   \
-        \ sha256 = \"$(shasum -a 256 musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
