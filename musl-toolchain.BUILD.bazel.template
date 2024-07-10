@@ -26,7 +26,7 @@ filegroup(name = "empty")
 
 filegroup(
     name = "dynamic_runtime_lib",
-    srcs = glob(["x86_64-linux-musl/lib/*.so*"]),
+    srcs = glob(["{{target_arch}}-linux-musl/lib/*.so*"]),
 )
 
 musl_cc_toolchain_config(name = "k8_musl_toolchain_config", target_arch = "{{target_arch}}")
