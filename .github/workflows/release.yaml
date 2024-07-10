@@ -73,7 +73,7 @@ jobs:
         path: output/test-binary-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
         if-no-files-found: error
   apple-darwin-x86_64-x86_64:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
         path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-x86_64-test-build:
-    runs-on: macos-11
+    runs-on: macos-12
     needs:
     - apple-darwin-x86_64-x86_64
     steps:
@@ -248,7 +248,7 @@ jobs:
         path: output/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-aarch64:
-    runs-on: macos-11
+    runs-on: macos-12
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
