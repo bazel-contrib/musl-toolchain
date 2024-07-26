@@ -30,9 +30,10 @@ trap "rm -rf ${working_directory}" EXIT
 #  * Apple Silicon support - this was taken from https://github.com/richfelker/musl-cross-make/pull/129
 #  * Statically link libintl and don't dynamically link libzstd - these avoid adding runtime dependencies to the musl toolchain which may not be present where people want to use the toolchain.
 #  * Fixes to support building with modern libc++ distributions, taken from https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111632
+#  * Strip temporary paths out of debug symbols for reproducibility
 git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_directory}"
 cd "${working_directory}"
-git checkout e5cd948aeeaef7186130a7376d8bc5ee08cb713d
+git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
