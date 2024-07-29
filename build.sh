@@ -16,16 +16,29 @@ TARGET="${TARGET_ARCH}-linux-musl"
 MUSL_VERSION=1.2.3
 if [[ "Linux" == "$(uname)" ]]; then
     PLATFORM=x86_64-unknown-linux-gnu
+
+    working_directory="$(mktemp -d)"
+    trap "rm -rf ${working_directory}" EXIT
 else
     if [[ "i386" = "$(uname -p)" ]]; then
         PLATFORM=x86_64-apple-darwin
     else
         PLATFORM=aarch64-apple-darwin
     fi
+
+    # We create a case-sensitive volume because there are files in musl which differ only in case.
+    # If we built in a case-insensitive filesystem, we'd pick one of these files to include in the tar, rather than including both versions.
+    volume_bundle_tempdir="$(mktemp -d /tmp/musl-build-volume-bundleXXX)"
+    hdiutil create -type SPARSE -fs "Case-sensitive APFS" -size 10g -volname CS "${volume_bundle_tempdir}/volume"
+    volume_bundle="${volume_bundle_tempdir}/volume.sparseimage"
+    volume_mount_dir="/Volumes/musl-build-dir-$(uuidgen)"
+    hdiutil attach -nobrowse -mountpoint "${volume_mount_dir}" "${volume_bundle}"
+    working_directory="${volume_mount_dir}"
+    # Sleep to give a little time for lingering processes using the mount dir to terminate.
+    trap "cd ${this_dir} ; sleep 5 ; hdiutil detach ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
+
 fi
 
-working_directory="$(mktemp -d)"
-trap "rm -rf ${working_directory}" EXIT
 # This fork contains several patches:
 #  * Apple Silicon support - this was taken from https://github.com/richfelker/musl-cross-make/pull/129
 #  * Statically link libintl and don't dynamically link libzstd - these avoid adding runtime dependencies to the musl toolchain which may not be present where people want to use the toolchain.
