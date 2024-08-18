@@ -119,6 +119,8 @@ linux_x86_64_runner = BaseRunner(
 
 linux_aarch64_runner = BaseRunner(
     top_level_properties={
+        # This runner doesn't support nested virtualization or Ubuntu 20.04,
+        # so we have to live with a glibc >= 2.35 requirement.
         "runs-on": "buildjet-2vcpu-ubuntu-2204-arm",
     },
     setup_steps=[
@@ -644,15 +646,18 @@ def make_jobs(release, version):
 
     source_machines = [
         (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
-        (OS.Linux, Architecture.ARM64, linux_aarch64_runner),
         (OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
         (OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
     ]
+    # Test ARM64 on Linux only in release runs as it relies on a third-party
+    # runner that isn't free to use.
+    if release:
+        source_machines.append((OS.Linux, Architecture.ARM64, linux_aarch64_runner))
 
     target_os = OS.Linux
     target_machines = [
         (Architecture.X86_64, linux_x86_64_runner),
-        (Architecture.ARM64, linux_aarch64_runner),
+        (Architecture.ARM64, linux_aarch64_runner if release else None),
     ]
 
     releasable_artifacts = []
@@ -719,6 +724,8 @@ def make_jobs(release, version):
                 "output": test_build_filename,
             }
 
+        if not target_runner:
+            continue
         test_job_name = f"test-{target_arch.for_musl}"
         test_jobs.append(test_job_name)
         jobs[test_job_name] = target_runner.top_level_properties | {
@@ -737,7 +744,7 @@ def make_jobs(release, version):
                          install_bazel(target_os, target_arch),
                          generate_tester_workspace_file(test_build_jobs[target_arch]),
                          {
-                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all",
+                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all -- " + ("" if release else "-//:built_binary_unknown-linux-gnu-aarch64"),
                          },
                      ],
         }

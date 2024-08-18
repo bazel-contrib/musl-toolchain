@@ -4,6 +4,15 @@
 
 This toolchain allows cross-compiling binaries for Linux from various platforms. It can be used to produce binaries which don't dynamically link `libc`, by statically linking `musl`'s `libc` implementation.
 
+The supported target and execution platforms are:
+
+* Linux x86_64
+* Linux arm64
+* macOS x86_64
+* macOS arm64
+
+Due to limitations of Linux arm64 runners available for GitHub Actions, the toolchain requires glibc >= 2.35 to run on Linux arm64 executors.
+
 ## Setup
 
 Setup instructions are available with [each release](https://github.com/bazel-contrib/musl-toolchain/releases).
