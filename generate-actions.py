@@ -123,7 +123,7 @@ linux_aarch64_runner = BaseRunner(
     },
     setup_steps=[
         {
-            "run": "ln -s /usr/bin/tar /usr/bin/gnutar",
+            "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },
     ],
 )
