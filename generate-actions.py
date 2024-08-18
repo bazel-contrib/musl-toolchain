@@ -117,6 +117,17 @@ linux_x86_64_runner = BaseRunner(
     ],
 )
 
+linux_aarch64_runner = BaseRunner(
+    top_level_properties={
+        "runs-on": "buildjet-2vcpu-ubuntu-2204-arm",
+    },
+    setup_steps=[
+        {
+            "run": "ln -s /usr/bin/tar /usr/bin/gnutar",
+        },
+    ],
+)
+
 _setup_darwin_steps = [
     {
         "run": "brew install wget md5sha1sum gnu-tar",
@@ -633,31 +644,32 @@ def make_jobs(release, version):
 
     source_machines = [
         (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
+        (OS.Linux, Architecture.ARM64, linux_aarch64_runner),
         (OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
         (OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
     ]
 
     target_os = OS.Linux
-    target_arches = [
-        Architecture.X86_64,
-        Architecture.ARM64,
+    target_machines = [
+        (Architecture.X86_64, linux_x86_64_runner),
+        (Architecture.ARM64, linux_aarch64_runner),
     ]
 
     releasable_artifacts = []
     test_build_jobs = defaultdict(dict)
     test_jobs = []
 
-    for target_arch in target_arches:
-        for source_os, source_arch, runner in source_machines:
+    for target_arch, target_runner in target_machines:
+        for source_os, source_arch, source_runner in source_machines:
             build_job_name = (
                 f"{source_os.for_musl}-{source_arch.for_musl}-{target_arch.for_musl}"
             )
             musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
-            jobs[build_job_name] = runner.top_level_properties | {
+            jobs[build_job_name] = source_runner.top_level_properties | {
                 "steps": [
                              checkout,
                          ]
-                         + runner.setup_steps
+                         + source_runner.setup_steps
                          + [
                              {
                                  "name": "Build musl",
@@ -677,15 +689,9 @@ def make_jobs(release, version):
                 )
             )
 
-            # TODO: Make this unconditional when GitHub Actions supports Linux arm64 runners
-            # For now we just release these binaries without testing them
-            # (Currently in private beta: https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/)
-            # See https://github.com/actions/runner-images/issues/5631
-            if target_arch != Architecture.X86_64:
-                continue
             test_build_job_name = f"{source_os.for_musl}-{source_arch.for_musl}-{target_arch.for_musl}-test-build"
             test_build_filename = f"test-binary-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
-            jobs[test_build_job_name] = runner.top_level_properties | {
+            jobs[test_build_job_name] = source_runner.top_level_properties | {
                 "needs": [build_job_name],
                 "steps": [
                     checkout,
@@ -713,15 +719,9 @@ def make_jobs(release, version):
                 "output": test_build_filename,
             }
 
-        # TODO: Make this unconditional when GitHub Actions supports Linux arm64 runners
-        # For now we just release these binaries without testing them
-        # (Currently in private beta: https://github.blog/changelog/2023-10-30-accelerate-your-ci-cd-with-arm-based-hosted-runners-in-github-actions/)
-        # See https://github.com/actions/runner-images/issues/5631
-        if target_arch != Architecture.X86_64:
-            continue
         test_job_name = f"test-{target_arch.for_musl}"
         test_jobs.append(test_job_name)
-        jobs[test_job_name] = linux_x86_64_runner.top_level_properties | {
+        jobs[test_job_name] = target_runner.top_level_properties | {
             "needs": [
                 test_build_job["job_name"]
                 for _, test_build_job in test_build_jobs[target_arch].items()
