@@ -225,7 +225,7 @@ jobs:
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n)\n\nEOF\n"
     - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
-        -- -//:run_built_binary_unknown-linux-gnu-aarch64_test
+        -- -//:run_built_binary_aarch64-unknown-linux-gnu_test
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-latest
     container: centos:centos8

@@ -744,7 +744,7 @@ def make_jobs(release, version):
                          install_bazel(target_os, target_arch),
                          generate_tester_workspace_file(test_build_jobs[target_arch]),
                          {
-                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all -- " + ("" if release else "-//:run_built_binary_unknown-linux-gnu-aarch64_test"),
+                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all -- " + ("" if release else "-//:run_built_binary_aarch64-unknown-linux-gnu_test"),
                          },
                      ],
         }
