@@ -674,9 +674,13 @@ jobs:
         : attr.label_list(),\n        \"extra_target_compatible_with\": attr.label_list(),\n\
         \    },\n)\n\ntoolchains_musl = module_extension(\n    implementation = _toolchains_musl,\n\
         \    tag_classes = {\n        \"config\": _config,\n    },\n)\nEOF\n"
+    - name: Generate BUILD.bazel
+      run: "cat >BUILD.bazel <<'EOF'\nconfig_setting(\n    name = \"dynamic_mode_off\"\
+        ,\n    values = {\n        \"dynamic_mode\": \"off\",\n    },\n    visibility\
+        \ = [\"//visibility:public\"],\n)\nEOF\n"
     - name: Generate toolchains.bzl
-      run: "touch BUILD.bazel\n\ncat >toolchains.bzl <<EOF\ndef register_musl_toolchains():\n\
-        \    native.register_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
+      run: "cat >toolchains.bzl <<EOF\ndef register_musl_toolchains():\n    native.register_toolchains(\"\
+        @musl_toolchains_hub//:all\")\nEOF\n"
     - name: Generate repositories.bzl
       run: "cat >repositories.bzl <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
         , \"http_archive\")\n\ndef _toolchain_repo(rctx):\n    rctx.file(\n      \

@@ -314,6 +314,39 @@ def generate_toolchain(
     return to_return
 
 
+def generate_test_toolchain(
+    repo_name, target_arch: Architecture, extra_target_compatible_expr: str = ""
+):
+    to_return = '"""'
+    to_return += f"""toolchain(
+    name = "{repo_name}_test_toolchain",
+    exec_compatible_with = [
+        "@platforms//cpu:{target_arch.for_bazel_platform}",
+        "@platforms//os:linux",
+    ]"""
+
+    # extra_target_compatible_with is explicitly omitted from exec_compatible_with as the test can
+    # run on any CPU/OS-compatible exec platform, it does not need musl to be present.
+
+    to_return += f""",
+    target_compatible_with = [
+        "@platforms//cpu:{target_arch.for_bazel_platform}",
+        "@platforms//os:linux",
+    ]"""
+
+    if extra_target_compatible_expr:
+        to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
+
+    to_return += f""",
+    toolchain = "@{repo_name}//:{repo_name}_test_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:test_runner_toolchain_type",
+)
+"""
+    to_return += '"""'
+
+    return to_return
+
+
 def http_archive(name, sha256, url):
     return f"""http_archive(
     name = "{name}",
@@ -431,10 +464,21 @@ EOF
 """,
         },
         {
+            "name": "Generate BUILD.bazel",
+            "run": """cat >BUILD.bazel <<'EOF'
+config_setting(
+    name = "dynamic_mode_off",
+    values = {
+        "dynamic_mode": "off",
+    },
+    visibility = ["//visibility:public"],
+)
+EOF
+""",
+        },
+        {
             "name": "Generate toolchains.bzl",
-            "run": f"""touch BUILD.bazel
-
-cat >toolchains.bzl <<EOF
+            "run": f"""cat >toolchains.bzl <<EOF
 def register_musl_toolchains():
     native.register_toolchains("@musl_toolchains_hub//:all")
 EOF

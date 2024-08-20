@@ -26,6 +26,82 @@ load(
     "with_feature_set",
 )
 
+_CcTestInfo = provider(
+    doc = "Toolchain implementation for @bazel_tools//tools/cpp:test_runner_toolchain_type",
+    fields = {
+        "get_runner": "",
+        "linkopts": "Additional linkopts from an external source (e.g. toolchain)",
+        "linkstatic": "If set, force this to be linked statically (i.e. --dynamic_mode=off)",
+    },
+)
+
+_CcTestRunnerInfo = provider(
+    doc = "Test runner implementation for @bazel_tools//tools/cpp:test_runner_toolchain_type",
+    fields = {
+        "args": "kwargs to pass to the test runner function",
+        "func": "The test runner function with signature (ctx, binary_info, processed_environment, **kwargs)",
+    },
+)
+
+def _musl_cc_test_runner_func(ctx, binary_info, processed_environment, dynamic_linker, dynamic_mode):
+    if dynamic_mode:
+        executable = ctx.actions.declare_file(ctx.label.name + "_test_runner.sh")
+        ctx.actions.write(
+            output = executable,
+            content = """\
+#!/bin/sh
+exec '{dynamic_linker}' "$0" "$@"
+""".format(dynamic_linker = dynamic_linker.short_path),
+            is_executable = True,
+        )
+        runfiles = ctx.runfiles([dynamic_linker]).merge(binary_info.runfiles)
+    else:
+        executable = binary_info.executable
+        runfiles = binary_info.runfiles
+
+    return [
+        DefaultInfo(
+            executable = executable,
+            files = binary_info.files,
+            runfiles = runfiles,
+        ),
+        RunEnvironmentInfo(
+            environment = processed_environment,
+            inherited_environment = ctx.attr.env_inherit,
+        ),
+    ]
+
+def _musl_cc_test_toolchain_impl(ctx):
+    cc_test_runner_info = _CcTestRunnerInfo(
+        args = {
+            "dynamic_linker": ctx.file.dynamic_linker,
+            "dynamic_mode": ctx.attr.dynamic_mode,
+        },
+        func = _musl_cc_test_runner_func,
+    )
+    cc_test_info = _CcTestInfo(
+        get_runner = cc_test_runner_info,
+        linkopts = [],
+    )
+    return [
+        platform_common.ToolchainInfo(
+            cc_test_info = cc_test_info,
+        ),
+    ]
+
+musl_cc_test_toolchain = rule(
+    implementation = _musl_cc_test_toolchain_impl,
+    attrs = {
+        "dynamic_linker": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+        "dynamic_mode": attr.bool(
+            mandatory = True,
+        ),
+    },
+)
+
 all_link_actions = [
     _CPP_LINK_EXECUTABLE_ACTION_NAME,
     _CPP_LINK_DYNAMIC_LIBRARY_ACTION_NAME,
