@@ -43,8 +43,12 @@ _CcTestRunnerInfo = provider(
     },
 )
 
-def _musl_cc_test_runner_func(ctx, binary_info, processed_environment, dynamic_linker, dynamic_mode):
-    if dynamic_mode:
+def _musl_cc_test_runner_func(ctx, binary_info, processed_environment, dynamic_linker):
+    cpp_config = ctx.fragments.cpp
+    if cpp_config.dynamic_mode == "OFF" or ctx.attr.linkstatic:
+        executable = binary_info.executable
+        runfiles = binary_info.runfiles
+    else:
         executable = ctx.actions.declare_file(ctx.label.name + "_test_runner.sh")
         ctx.actions.write(
             output = executable,
@@ -55,9 +59,6 @@ exec '{dynamic_linker}' "$0" "$@"
             is_executable = True,
         )
         runfiles = ctx.runfiles([dynamic_linker]).merge(binary_info.runfiles)
-    else:
-        executable = binary_info.executable
-        runfiles = binary_info.runfiles
 
     return [
         DefaultInfo(
@@ -75,7 +76,6 @@ def _musl_cc_test_toolchain_impl(ctx):
     cc_test_runner_info = _CcTestRunnerInfo(
         args = {
             "dynamic_linker": ctx.file.dynamic_linker,
-            "dynamic_mode": ctx.attr.dynamic_mode,
         },
         func = _musl_cc_test_runner_func,
     )
@@ -94,9 +94,6 @@ musl_cc_test_toolchain = rule(
     attrs = {
         "dynamic_linker": attr.label(
             allow_single_file = True,
-            mandatory = True,
-        ),
-        "dynamic_mode": attr.bool(
             mandatory = True,
         ),
     },

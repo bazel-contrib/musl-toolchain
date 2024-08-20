@@ -53,8 +53,4 @@ cc_toolchain(
 musl_cc_test_toolchain(
     name = "{{toolchain_name}}_test_toolchain",
     dynamic_linker = "{{target_arch}}-linux-musl/lib/libc.so",
-    dynamic_mode = select({
-        "@toolchains_musl//:dynamic_mode_off": False,
-        "//conditions:default": True,
-    }),
 )

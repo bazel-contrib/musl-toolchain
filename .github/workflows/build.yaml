@@ -58,10 +58,10 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+    - name: Test with musl
+      run: cd test-workspaces/builder && bazel test //:test --extra_toolchains=//config:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary --extra_toolchains=//config:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
     - name: Upload test-binary-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
@@ -115,10 +115,10 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+    - name: Test with musl
+      run: cd test-workspaces/builder && bazel test //:test --extra_toolchains=//config:musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary --extra_toolchains=//config:musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-apple-darwin-target-x86_64-linux-musl
     - name: Upload test-binary-platform-x86_64-apple-darwin-target-x86_64-linux-musl
@@ -172,10 +172,8 @@ jobs:
         platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
         @platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
         EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary --extra_toolchains=//config:musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl
     - name: Upload test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl

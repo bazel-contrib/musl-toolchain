@@ -465,16 +465,7 @@ EOF
         },
         {
             "name": "Generate BUILD.bazel",
-            "run": """cat >BUILD.bazel <<'EOF'
-config_setting(
-    name = "dynamic_mode_off",
-    values = {
-        "dynamic_mode": "off",
-    },
-    visibility = ["//visibility:public"],
-)
-EOF
-""",
+            "run": """touch BUILD.bazel""",
         },
         {
             "name": "Generate toolchains.bzl",
@@ -752,9 +743,16 @@ def make_jobs(release, version):
                     generate_builder_workspace_config_build_file(
                         source_os, source_arch, target_arch
                     ),
+                ] + ([
                     {
-                        "name": "Build test binary and test with musl",
-                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:" + musl_toolchain_target_name(source_os, source_arch, target_arch) + " --incompatible_enable_cc_toolchain_resolution",
+                        "name": "Test with musl",
+                        "run": "cd test-workspaces/builder && bazel test //:test --extra_toolchains=//config:" + musl_toolchain_target_name(source_os, source_arch, target_arch),
+                    }
+                ] if source_arch == target_arch else []) +
+                [
+                    {
+                        "name": "Build with musl",
+                        "run": "cd test-workspaces/builder && bazel build //:binary --extra_toolchains=//config:" + musl_toolchain_target_name(source_os, source_arch, target_arch),
                     },
                     {
                         "name": "Move test binary",
