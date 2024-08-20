@@ -22,8 +22,11 @@ Setup instructions are available with [each release](https://github.com/bazel-co
 ## Usage
 
 The toolchain automatically enables the `fully_static_link` feature to produce statically linked binaries that run anywhere.
-`cc_binary` targets with dynamic library dependencies (e.g. `dynamic_deps` or `cc_import`s) as well as `cc_test` targets with `--dynamic_mode` at its default value will be linked dynamically. Such binaries require the `musl` dynamic linker to be present at `/lib/ld-musl-<arch>.so.1` on the target system (i.e. the host when running `bazel test` on Linux).
+
+`cc_binary` targets with dynamic library dependencies (e.g. `dynamic_deps` or `cc_import`s), `linkstatic = False` or `--dynamic_mode=fully` will be linked dynamically. Such binaries require the `musl` dynamic linker to be present at `/lib/ld-musl-<arch>.so.1` on the target system.
 Since the path to the dynamic linker is hardcoded into the binary as an absolute path, there is no way to supply it hermetically.
+
+Dynamically linked `cc_test`s are automatically executed with a hermetic `musl` dynamic linker (requires Bazel 7 or higher).
 
 ## Comparison with other `cc_toolchain` implementations
 
