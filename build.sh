@@ -62,6 +62,9 @@ if [[ "Linux" == "$(uname)" ]]; then
   find bin libexec -type f -executable -exec strip {} \;
 fi
 
+# Fix up the link to the dynamic linker to be a relative path.
+ln -sf libc.so "${TARGET}/lib/ld-musl-${TARGET_ARCH}.so.1"
+
 output_name_without_extension="musl-${MUSL_VERSION}-platform-${PLATFORM}-target-${TARGET}"
 
 cp "${this_dir}/musl_cc_toolchain_config.bzl" ./

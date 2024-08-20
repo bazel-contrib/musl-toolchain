@@ -52,5 +52,5 @@ cc_toolchain(
 
 musl_cc_test_toolchain(
     name = "{{toolchain_name}}_test_toolchain",
-    dynamic_linker = "{{target_arch}}-linux-musl/lib/libc.so",
+    dynamic_linker = "{{target_arch}}-linux-musl/lib/ld-musl-{{target_arch}}.so.1",
 )
