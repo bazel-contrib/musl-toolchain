@@ -54,6 +54,7 @@ def _musl_cc_test_runner_func(ctx, binary_info, processed_environment, dynamic_l
             output = executable,
             content = """\
 #!/bin/sh
+file -L -- "$0"
 exec '{dynamic_linker}' "$0" "$@"
 """.format(dynamic_linker = dynamic_linker.short_path),
             is_executable = True,
