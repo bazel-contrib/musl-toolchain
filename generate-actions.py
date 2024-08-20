@@ -755,7 +755,11 @@ def make_jobs(release, version):
                     {
                         "name": "Test with musl",
                         "run": "cd test-workspaces/builder && bazel test //:test",
-                    }
+                    },
+                    {
+                        "name": "Test with musl (static linking)",
+                        "run": "cd test-workspaces/builder && bazel test //:test --dynamic_mode=off",
+                    },
                 ] if source_arch == target_arch else []) +
                 [
                     {
