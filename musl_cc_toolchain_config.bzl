@@ -45,7 +45,7 @@ _CcTestRunnerInfo = provider(
 
 def _musl_cc_test_runner_func(ctx, binary_info, processed_environment, dynamic_linker):
     cpp_config = ctx.fragments.cpp
-    if cpp_config.dynamic_mode == "OFF" or ctx.attr.linkstatic:
+    if cpp_config.dynamic_mode() == "OFF" or ctx.attr.linkstatic:
         executable = binary_info.executable
         runfiles = binary_info.runfiles
     else:
