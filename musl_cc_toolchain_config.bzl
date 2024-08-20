@@ -59,9 +59,11 @@ exec '{dynamic_linker}' "$0" "$@"
             is_executable = True,
         )
         runfiles = ctx.runfiles([
+            executable,
             dynamic_linker,
             binary_info.executable,
         ]).merge(binary_info.runfiles)
+        print(runfiles)
 
     return [
         DefaultInfo(
