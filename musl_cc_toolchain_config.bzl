@@ -59,13 +59,9 @@ exec '{dynamic_linker}' "$0" "$@"
             is_executable = True,
         )
         runfiles = ctx.runfiles([
-            executable,
             dynamic_linker,
             binary_info.executable,
         ]).merge(binary_info.runfiles)
-    print(cpp_config.dynamic_mode)
-    print(ctx.attr.linkstatic)
-    print(runfiles)
 
     return [
         DefaultInfo(
