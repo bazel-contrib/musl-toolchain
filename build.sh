@@ -15,7 +15,11 @@ TARGET="${TARGET_ARCH}-linux-musl"
 
 MUSL_VERSION=1.2.3
 if [[ "Linux" == "$(uname)" ]]; then
-    PLATFORM=x86_64-unknown-linux-gnu
+    if [[ "x86_64" == "$(uname -p)" ]]; then
+        PLATFORM=x86_64-unknown-linux-gnu
+    else
+        PLATFORM=aarch64-unknown-linux-gnu
+    fi
 
     working_directory="$(mktemp -d)"
     trap "rm -rf ${working_directory}" EXIT
