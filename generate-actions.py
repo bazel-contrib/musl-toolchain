@@ -121,8 +121,8 @@ linux_aarch64_runner = BaseRunner(
     top_level_properties={
         # This runner doesn't support nested virtualization or Ubuntu 20.04,
         # so we have to live with a glibc >= 2.35 requirement.
-        # The runner can be configured on the level of the bazel-contrib org
-        # by anyone with Admin or Owner access.
+        # Configuration requires admin access to this repo:
+        # https://app.buildjet.com/53858925
         "runs-on": "buildjet-2vcpu-ubuntu-2204-arm",
     },
     setup_steps=[
