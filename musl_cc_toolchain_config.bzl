@@ -29,7 +29,7 @@ load(
 _CcTestInfo = provider(
     doc = "Toolchain implementation for @bazel_tools//tools/cpp:test_runner_toolchain_type",
     fields = {
-        "get_runner": "",
+        "get_runner": "Callback invoked by cc_test, should accept (ctx, binary_info, processed_environment, dynamic_linker) and return a list of providers",
         "linkopts": "Additional linkopts from an external source (e.g. toolchain)",
         "linkstatic": "If set, force this to be linked statically (i.e. --dynamic_mode=off)",
     },
