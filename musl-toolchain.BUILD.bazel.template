@@ -1,4 +1,4 @@
-load("//:musl_cc_toolchain_config.bzl", "musl_cc_toolchain_config")
+load("//:musl_cc_toolchain_config.bzl", "musl_cc_test_toolchain", "musl_cc_toolchain_config")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -48,4 +48,9 @@ cc_toolchain(
     dynamic_runtime_lib = ":dynamic_runtime_lib",
     # Linked in automatically by the toolchain.
     static_runtime_lib = ":empty",
+)
+
+musl_cc_test_toolchain(
+    name = "{{toolchain_name}}_test_toolchain",
+    dynamic_linker = "{{target_arch}}-linux-musl/lib/ld-musl-{{target_arch}}.so.1",
 )

@@ -197,6 +197,7 @@ def generate_builder_workspace_config_build_file(
 ):
     toolchain_name = musl_toolchain_target_name(source_os, source_arch, target_arch).replace(".", "_")
     content = generate_toolchain(toolchain_name, source_arch, source_os, target_arch, wrap_in_triple_quotes=False)
+    content += generate_test_toolchain(toolchain_name, target_arch, wrap_in_triple_quotes=False)
     content += f"""
 platform(
     name = "platform",
@@ -305,6 +306,46 @@ def generate_toolchain(
     to_return += f""",
     toolchain = "@{repo_name}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+"""
+
+    if wrap_in_triple_quotes:
+        to_return += '"""'
+
+    return to_return
+
+
+def generate_test_toolchain(
+    repo_name, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_target_compatible_expr: str = ""
+):
+    if not wrap_in_triple_quotes and extra_target_compatible_expr:
+        raise RuntimeError("Can't set extra_target_compatible_expr if not wrap_in_triple_quotes")
+
+    to_return = ""
+    if wrap_in_triple_quotes:
+        to_return += '"""'
+    to_return += f"""toolchain(
+    name = "{repo_name}_test_toolchain",
+    exec_compatible_with = [
+        "@platforms//cpu:{target_arch.for_bazel_platform}",
+        "@platforms//os:linux",
+    ]"""
+
+    # extra_target_compatible_with is explicitly omitted from exec_compatible_with as the test can
+    # run on any CPU/OS-compatible exec platform, it does not need musl to be present.
+
+    to_return += f""",
+    target_compatible_with = [
+        "@platforms//cpu:{target_arch.for_bazel_platform}",
+        "@platforms//os:linux",
+    ]"""
+
+    if extra_target_compatible_expr:
+        to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
+
+    to_return += f""",
+    toolchain = "@{repo_name}//:{repo_name}_test_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:test_runner_toolchain_type",
 )
 """
 
@@ -431,10 +472,12 @@ EOF
 """,
         },
         {
+            "name": "Generate BUILD.bazel",
+            "run": """touch BUILD.bazel""",
+        },
+        {
             "name": "Generate toolchains.bzl",
-            "run": f"""touch BUILD.bazel
-
-cat >toolchains.bzl <<EOF
+            "run": f"""cat >toolchains.bzl <<EOF
 def register_musl_toolchains():
     native.register_toolchains("@musl_toolchains_hub//:all")
 EOF
@@ -708,9 +751,20 @@ def make_jobs(release, version):
                     generate_builder_workspace_config_build_file(
                         source_os, source_arch, target_arch
                     ),
+                ] + ([
                     {
-                        "name": "Build test binary and test with musl",
-                        "run": "cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:" + musl_toolchain_target_name(source_os, source_arch, target_arch) + " --incompatible_enable_cc_toolchain_resolution",
+                        "name": "Test with musl",
+                        "run": "cd test-workspaces/builder && bazel test //:test",
+                    },
+                    {
+                        "name": "Test with musl (static linking)",
+                        "run": "cd test-workspaces/builder && bazel test //:test --dynamic_mode=off",
+                    },
+                ] if source_os == OS.Linux and source_arch == target_arch else []) +
+                [
+                    {
+                        "name": "Build with musl",
+                        "run": "cd test-workspaces/builder && bazel build //:binary",
                     },
                     {
                         "name": "Move test binary",

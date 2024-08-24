@@ -1,1 +1,6 @@
 common --incompatible_disallow_empty_glob
+common --test_output=errors
+
+common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common --platforms=//config:platform
+common --extra_toolchains=//config:all
