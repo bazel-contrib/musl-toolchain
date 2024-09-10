@@ -7,16 +7,16 @@ name: PR
 jobs:
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-latest
-    container: centos:centos8
+    container: amazonlinux:2
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     steps:
+    - run: yum install -y bzip2 git gzip make patch tar wget which
+    - run: yum group install -y "Development Tools"
+    - run: ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: sed -i 's|mirrorlist|#mirrorlist|g' /etc/yum.repos.d/CentOS-*
-    - run: sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g'
-        /etc/yum.repos.d/CentOS-*
-    - run: yum install -y bzip2 git make patch wget
-    - run: dnf group install -y "Development Tools"
-    - run: ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Build musl
       run: ./build.sh x86_64
     - name: Upload musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
@@ -27,10 +27,14 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-x86_64-x86_64-test-build:
     runs-on: ubuntu-latest
-    container: centos:centos8
+    container: amazonlinux:2
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     needs:
     - unknown-linux-gnu-x86_64-x86_64
     steps:
+    - run: yum install -y gzip tar
     - name: Checkout repo
       uses: actions/checkout@v3
     - name: Download musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
@@ -81,9 +85,9 @@ jobs:
   apple-darwin-x86_64-x86_64:
     runs-on: macos-12
     steps:
+    - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: brew install wget md5sha1sum gnu-tar
     - name: Build musl
       run: ./build.sh x86_64
     - name: Upload musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
@@ -142,9 +146,9 @@ jobs:
   apple-darwin-aarch64-x86_64:
     runs-on: macos-14
     steps:
+    - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: brew install wget md5sha1sum gnu-tar
     - name: Build musl
       run: ./build.sh x86_64
     - name: Upload musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
@@ -202,12 +206,16 @@ jobs:
         if-no-files-found: error
   test-x86_64:
     runs-on: ubuntu-latest
-    container: centos:centos8
+    container: amazonlinux:2
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     needs:
     - unknown-linux-gnu-x86_64-x86_64-test-build
     - apple-darwin-x86_64-x86_64-test-build
     - apple-darwin-aarch64-x86_64-test-build
     steps:
+    - run: yum install -y gzip tar
     - name: Checkout repo
       uses: actions/checkout@v3
     - name: Download test-binary-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl
@@ -244,16 +252,16 @@ jobs:
         -- -//:run_built_binary_aarch64-unknown-linux-gnu_test
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-latest
-    container: centos:centos8
+    container: amazonlinux:2
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     steps:
+    - run: yum install -y bzip2 git gzip make patch tar wget which
+    - run: yum group install -y "Development Tools"
+    - run: ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: sed -i 's|mirrorlist|#mirrorlist|g' /etc/yum.repos.d/CentOS-*
-    - run: sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g'
-        /etc/yum.repos.d/CentOS-*
-    - run: yum install -y bzip2 git make patch wget
-    - run: dnf group install -y "Development Tools"
-    - run: ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Build musl
       run: ./build.sh aarch64
     - name: Upload musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
@@ -264,10 +272,14 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-x86_64-aarch64-test-build:
     runs-on: ubuntu-latest
-    container: centos:centos8
+    container: amazonlinux:2
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+      ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
     needs:
     - unknown-linux-gnu-x86_64-aarch64
     steps:
+    - run: yum install -y gzip tar
     - name: Checkout repo
       uses: actions/checkout@v3
     - name: Download musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
@@ -291,14 +303,18 @@ jobs:
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n \
         \   ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
-        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\n\
-        platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
-        @platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
-        EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
+        \    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
+        \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl//:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
+        ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n)\n\nEOF\n"
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl
     - name: Upload test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl
@@ -310,9 +326,9 @@ jobs:
   apple-darwin-x86_64-aarch64:
     runs-on: macos-12
     steps:
+    - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: brew install wget md5sha1sum gnu-tar
     - name: Build musl
       run: ./build.sh aarch64
     - name: Upload musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
@@ -348,14 +364,18 @@ jobs:
         \     \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n  \
         \      \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n   \
         \ ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
-        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\n\
-        platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
-        @platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
-        EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
+        \    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
+        \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
+        ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n)\n\nEOF\n"
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl
     - name: Upload test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl
@@ -367,9 +387,9 @@ jobs:
   apple-darwin-aarch64-aarch64:
     runs-on: macos-14
     steps:
+    - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
       uses: actions/checkout@v3
-    - run: brew install wget md5sha1sum gnu-tar
     - name: Build musl
       run: ./build.sh aarch64
     - name: Upload musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
@@ -405,14 +425,18 @@ jobs:
         \    \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n   \
         \     \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n    ],\n\
         \    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
-        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\n\
-        platform(\n    name = \"platform\",\n    constraint_values = [\n        \"\
-        @platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n    ],\n)\n\n\
-        EOF\n"
-    - name: Build test binary and test with musl
-      run: cd test-workspaces/builder && BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1 bazel
-        build //:binary //:test --platforms=//config:platform --extra_toolchains=//config:musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl
-        --incompatible_enable_cc_toolchain_resolution
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
+        \    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
+        \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
+        ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
+        \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
+        \  ],\n)\n\nEOF\n"
+    - name: Build with musl
+      run: cd test-workspaces/builder && bazel build //:binary
     - name: Move test binary
       run: mkdir output && cp test-workspaces/builder/bazel-bin/binary output/test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl
     - name: Upload test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl

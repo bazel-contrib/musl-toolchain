@@ -9,6 +9,8 @@ import yaml
 
 checkout = {
     "name": "Checkout repo",
+    # Pin to v3 not newer, because it uses a version of node which is compatible with amazonlinux2.
+    # See https://github.com/actions/runner/issues/2906 for more details.
     "uses": "actions/checkout@v3",
 }
 
@@ -76,7 +78,8 @@ class OS(Enum):
 @dataclass
 class BaseRunner:
     top_level_properties: Dict[str, Any]
-    setup_steps: List[Dict[str, Any]]
+    build_setup_steps: List[Dict[str, Any]]
+    test_setup_steps: List[Dict[str, Any]]
 
 
 def install_bazel(os: OS, arch: Architecture):
@@ -96,23 +99,29 @@ def install_bazel(os: OS, arch: Architecture):
 linux_x86_64_runner = BaseRunner(
     top_level_properties={
         "runs-on": "ubuntu-latest",
-        "container": "centos:centos8",
+        "container": "amazonlinux:2",
+        # Don't have GitHub Actions force a newer node which uses too new a glibc when checking out the repo.
+        # See https://github.com/actions/runner/issues/2906 for more details.
+        "env": {
+            "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION": True,
+            "ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION": "node16",
+        },
     },
-    setup_steps=[
+    build_setup_steps=[
         {
-            "run": "sed -i 's|mirrorlist|#mirrorlist|g' /etc/yum.repos.d/CentOS-*",
+            "run": "yum install -y bzip2 git gzip make patch tar wget which",
         },
         {
-            "run": "sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*",
-        },
-        {
-            "run": "yum install -y bzip2 git make patch wget",
-        },
-        {
-            "run": 'dnf group install -y "Development Tools"',
+            "run": 'yum group install -y "Development Tools"',
         },
         {
             "run": "ln -s /usr/bin/tar /usr/bin/gnutar",
+        },
+    ],
+    test_setup_steps=[
+        {
+            # The checkout action assumes tar is present on $PATH.
+            "run": "yum install -y gzip tar",
         },
     ],
 )
@@ -125,11 +134,12 @@ linux_aarch64_runner = BaseRunner(
         # https://app.buildjet.com/53858925
         "runs-on": "buildjet-2vcpu-ubuntu-2204-arm",
     },
-    setup_steps=[
+    build_setup_steps=[
         {
             "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },
     ],
+    test_setup_steps=[],
 )
 
 _setup_darwin_steps = [
@@ -142,14 +152,16 @@ darwin_x86_64_runner = BaseRunner(
     top_level_properties={
         "runs-on": "macos-12",
     },
-    setup_steps=_setup_darwin_steps,
+    build_setup_steps=_setup_darwin_steps,
+    test_setup_steps=[],
 )
 
 darwin_aarch64_runner = BaseRunner(
     top_level_properties={
         "runs-on": "macos-14",
     },
-    setup_steps=_setup_darwin_steps,
+    build_setup_steps=_setup_darwin_steps,
+    test_setup_steps=[],
 )
 
 
@@ -716,10 +728,10 @@ def make_jobs(release, version):
             )
             musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
             jobs[build_job_name] = source_runner.top_level_properties | {
-                "steps": [
+                "steps": source_runner.build_setup_steps
+                         + [
                              checkout,
                          ]
-                         + source_runner.setup_steps
                          + [
                              {
                                  "name": "Build musl",
@@ -743,7 +755,7 @@ def make_jobs(release, version):
             test_build_filename = f"test-binary-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
             jobs[test_build_job_name] = source_runner.top_level_properties | {
                 "needs": [build_job_name],
-                "steps": [
+                "steps": source_runner.test_setup_steps + [
                     checkout,
                     download(musl_filename),
                     install_bazel(source_os, source_arch),
@@ -789,7 +801,7 @@ def make_jobs(release, version):
                 test_build_job["job_name"]
                 for _, test_build_job in test_build_jobs[target_arch].items()
             ],
-            "steps": [
+            "steps": target_runner.test_setup_steps + [
                          checkout,
                      ]
                      + [
