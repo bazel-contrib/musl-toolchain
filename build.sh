@@ -39,7 +39,7 @@ else
     hdiutil attach -nobrowse -mountpoint "${volume_mount_dir}" "${volume_bundle}"
     working_directory="${volume_mount_dir}"
     # Sleep to give a little time for lingering processes using the mount dir to terminate.
-    trap "cd ${this_dir} ; sleep 5 ; hdiutil detach ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
+    trap "cd ${this_dir} ; sleep 15 ; hdiutil detach ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
 
 fi
 
