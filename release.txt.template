@@ -4,12 +4,13 @@ To use this release, paste the following into your `MODULE.bazel` file:
 bazel_dep(name = "toolchains_musl", version = "{version}", dev_dependency = True)
 ```
 
-If you need to attach custom exec or target constraints to these toolchains, you can write:
+If you need to attach custom exec or target constraints or build settings to these toolchains, you can write:
 ```starlark
 toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
 toolchains_musl.config(
     extra_exec_compatible_with = ["//some/constraint:label"],
     extra_target_compatible_with = ["@some//other/constraint:label"],
+    target_settings = ["//some/starlark/build/setting:label],
 )
 ```
 

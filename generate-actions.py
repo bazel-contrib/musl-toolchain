@@ -272,10 +272,10 @@ def download_url_for(filename, version):
 
 
 def generate_toolchain(
-    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_exec_compatible_expr: str = "", extra_target_compatible_expr: str = ""
+    repo_name, source_arch: Architecture, source_os: OS, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_exec_compatible_expr: str = "", extra_target_compatible_expr: str = "", target_settings_expr: str = ""
 ):
-    if not wrap_in_triple_quotes and (extra_exec_compatible_expr or extra_target_compatible_expr):
-        raise RuntimeError("Can't set extra_{exec,target}_compatible_expr if not wrap_in_triple_quotes")
+    if not wrap_in_triple_quotes and (extra_exec_compatible_expr or extra_target_compatible_expr or target_settings_expr):
+        raise RuntimeError("Can't set extra_{exec,target}_compatible_expr or target_settings_expr if not wrap_in_triple_quotes")
 
     to_return = ""
     if wrap_in_triple_quotes:
@@ -299,6 +299,11 @@ def generate_toolchain(
     if extra_target_compatible_expr:
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
 
+    if target_settings_expr:
+        to_return += f"""
+    target_settings = """
+        to_return += ' + """ + repr(' + target_settings_expr + ') + """'
+
     to_return += f""",
     toolchain = "@{repo_name}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
@@ -312,10 +317,10 @@ def generate_toolchain(
 
 
 def generate_test_toolchain(
-    repo_name, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_target_compatible_expr: str = ""
+    repo_name, target_arch: Architecture, wrap_in_triple_quotes: bool, extra_target_compatible_expr: str = "", target_settings_expr: str = ""
 ):
-    if not wrap_in_triple_quotes and extra_target_compatible_expr:
-        raise RuntimeError("Can't set extra_target_compatible_expr if not wrap_in_triple_quotes")
+    if not wrap_in_triple_quotes and (extra_target_compatible_expr or target_settings_expr):
+        raise RuntimeError("Can't set extra_target_compatible_expr or target_settings_expr if not wrap_in_triple_quotes")
 
     to_return = ""
     if wrap_in_triple_quotes:
@@ -338,6 +343,11 @@ def generate_test_toolchain(
 
     if extra_target_compatible_expr:
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
+
+    if target_settings_expr:
+        to_return += f"""
+    target_settings = """
+        to_return += ' + """ + repr(' + target_settings_expr + ') + """'
 
     to_return += f""",
     toolchain = "@{repo_name}//:{repo_name}_test_toolchain",
@@ -371,6 +381,7 @@ def generate_release_archive(toolchain_infos, output_path, version):
                 wrap_in_triple_quotes=True,
                 extra_exec_compatible_expr="rctx.attr.extra_exec_compatible_with",
                 extra_target_compatible_expr="rctx.attr.extra_target_compatible_with",
+                target_settings_expr="rctx.attr.target_settings",
             )
             for artifact in toolchain_infos
         ]
@@ -425,6 +436,7 @@ load(":repositories.bzl", "load_musl_toolchains")
 def _toolchains_musl(module_ctx):
     extra_exec_compatible_with = []
     extra_target_compatible_with = []
+    target_settings = []
     for module in module_ctx.modules:
         if not module.tags.config:
             continue
@@ -440,10 +452,12 @@ def _toolchains_musl(module_ctx):
         config = module.tags.config[0]
         extra_exec_compatible_with = config.extra_exec_compatible_with
         extra_target_compatible_with = config.extra_target_compatible_with
+        target_settings = config.target_settings
 
     load_musl_toolchains(
         extra_exec_compatible_with = [str(label) for label in extra_exec_compatible_with],
         extra_target_compatible_with = [str(label) for label in extra_target_compatible_with],
+        target_settings = [str(label) for label in target_settings],
     )
 
     if bazel_features.external_deps.extension_metadata_has_reproducible:
@@ -455,6 +469,7 @@ _config = tag_class(
     attrs = {
         "extra_exec_compatible_with": attr.label_list(),
         "extra_target_compatible_with": attr.label_list(),
+        "target_settings": attr.label_list(),
     },
 )
 
@@ -495,19 +510,30 @@ toolchain_repo = repository_rule(
     attrs = {{
         "extra_exec_compatible_with": attr.string_list(),
         "extra_target_compatible_with": attr.string_list(),
+        "target_settings": attr.string_list(),
     }},
 )
 
-def load_musl_toolchains(extra_exec_compatible_with=[], extra_target_compatible_with=[]):
+def load_musl_toolchains(extra_exec_compatible_with=[], extra_target_compatible_with=[], target_settings=[]):
 {textwrap.indent(http_archives, "    ")}
 
     toolchain_repo(
         name = "musl_toolchains_hub",
         extra_exec_compatible_with = extra_exec_compatible_with,
         extra_target_compatible_with = extra_target_compatible_with,
+        target_settings = target_settings,
     )
 EOF
 """,
+        },
+        {
+            "name": "Generate bcr_test/.bazelrc",
+            "run": '''mkdir -p bcr_test
+
+cat >bcr_test/.bazelrc <<'EOF'
+common --//:toolchain_flavor=musl
+EOF
+'''
         },
         {
             "name": "Generate bcr_test/MODULE.bazel",
@@ -522,10 +548,12 @@ local_path_override(
 )
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.7.7")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
 toolchains_musl.config(
     extra_target_compatible_with = ["//:musl_on"],
+    target_settings = ["//:musl_flavor"],
 )
 EOF
 """,
@@ -537,6 +565,7 @@ touch bcr_test/BUILD.bazel
 
 cat >bcr_test/BUILD.bazel <<'EOF2'
 load("@aspect_bazel_lib//lib:transitions.bzl", "platform_transition_binary")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -614,6 +643,18 @@ constraint_value(
 constraint_value(
     name = "musl_off",
     constraint_setting = ":musl",
+)
+
+string_flag(
+    name = "toolchain_flavor",
+    build_setting_default = "not_musl",
+)
+
+config_setting(
+    name = "musl_flavor",
+    flag_values = {
+        ":toolchain_flavor": "musl",
+    },
 )
 EOF2
 ''',
