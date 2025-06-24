@@ -53,8 +53,6 @@ cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
 if [[ "Linux" == "$(uname)" ]]; then
-  git apply "${this_dir}/static_host_compiler.patch"
-
   # Stage 1: Build preliminary toolchain
   echo "Building stage1 toolchain..."
   TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
@@ -70,9 +68,9 @@ if [[ "Linux" == "$(uname)" ]]; then
   # The `HOST` variable in litecross/Makefile is used for this.
   # We'll also introduce a new variable `STATIC_HOST_COMPILER=y` to signal
   # that we want the host components (i.e., gcc itself) to be static.
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=g++ LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+  TARGET="${TARGET}" HOST="${PLATFORM}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=gcc LDFLAGS="-static" \
       make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=g++ LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+  TARGET="${TARGET}" HOST="${PLATFORM}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=gcc LDFLAGS="-static" \
       make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 else
   # Standard single-stage build for non-Linux platforms (macOS)
