@@ -52,8 +52,35 @@ git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_direct
 cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
-TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
+if [[ "Linux" == "$(uname)" ]]; then
+  git apply "${this_dir}/static_host_compiler.patch"
+
+  # Stage 1: Build preliminary toolchain
+  echo "Building stage1 toolchain..."
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install OUTPUT="${working_directory}/output_stage1"
+
+  # Stage 2: Build final toolchain using the stage1 toolchain
+  echo "Building stage2 toolchain..."
+  # Clean previous build artifacts but keep downloaded sources and stage1 output
+  make clean
+  rm -rf build/
+  # Point CC to the stage1 GCC and set LDFLAGS for static linking.
+  # We also need to tell musl-cross-make to build a "native" compiler.
+  # The `HOST` variable in litecross/Makefile is used for this.
+  # We'll also introduce a new variable `STATIC_HOST_COMPILER=y` to signal
+  # that we want the host components (gcc itself) to be static.
+  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" \
+      LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" \
+      LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
+else
+  # Standard single-stage build for non-Linux platforms (macOS)
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
+fi
 
 cd output
 
