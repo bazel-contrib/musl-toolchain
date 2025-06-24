@@ -69,12 +69,10 @@ if [[ "Linux" == "$(uname)" ]]; then
   # We also need to tell musl-cross-make to build a "native" compiler.
   # The `HOST` variable in litecross/Makefile is used for this.
   # We'll also introduce a new variable `STATIC_HOST_COMPILER=y` to signal
-  # that we want the host components (gcc itself) to be static.
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" \
-      LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+  # that we want the host components (i.e., gcc itself) to be static.
+  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=g++ LDFLAGS="-static" STATIC_HOST_COMPILER=y \
       make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" \
-      LDFLAGS="-static" STATIC_HOST_COMPILER=y \
+  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" CC_FOR_BUILD=g++ LDFLAGS="-static" STATIC_HOST_COMPILER=y \
       make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 else
   # Standard single-stage build for non-Linux platforms (macOS)
