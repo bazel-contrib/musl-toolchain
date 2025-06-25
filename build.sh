@@ -74,7 +74,7 @@ EOF
   # We'll also introduce a new variable `STATIC_HOST_COMPILER=y` to signal
   # that we want the host components (i.e., gcc itself) to be static.
   TARGET="${TARGET}" HOST="${PLATFORM}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc-static" \
-      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" || { cat config.log; exit 1; }
   TARGET="${TARGET}" HOST="${PLATFORM}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc-static" \
       make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 else
