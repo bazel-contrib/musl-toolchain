@@ -68,6 +68,7 @@ if [[ "Linux" == "$(uname)" ]]; then
 #!/bin/sh
 exec ${working_directory}/output_stage1/bin/${TARGET}-gcc "\$@" -static
 EOF
+  chmod +x "${working_directory}/output_stage1/bin/${TARGET}-gcc-static"
   # Point CC to the stage1 GCC and set LDFLAGS for static linking.
   # We also need to tell musl-cross-make to build a "native" compiler.
   # The `HOST` variable in litecross/Makefile is used for this.
