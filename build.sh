@@ -53,6 +53,10 @@ cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
 if [[ "Linux" == "$(uname)" ]]; then
+  cat <<EOF >>config.mak
+GCC_CONFIG += --disable-nls
+EOF
+
   # Stage 1: Build preliminary toolchain
   echo "Building stage1 toolchain..."
   TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
