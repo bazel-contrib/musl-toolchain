@@ -96,7 +96,7 @@ def install_bazel(os: OS, arch: Architecture):
 
 linux_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "ubuntu-latest",
+        "runs-on": "ubuntu-24.04",
     },
     build_setup_steps=[
         {
@@ -134,7 +134,7 @@ _setup_darwin_steps = [
 
 darwin_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-12",
+        "runs-on": "macos-13",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
@@ -142,7 +142,7 @@ darwin_x86_64_runner = BaseRunner(
 
 darwin_aarch64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-14",
+        "runs-on": "macos-15",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
@@ -803,7 +803,7 @@ def make_jobs(release, version):
         release_body_path = "release-notes.txt"
         release_archive_path = f"musl_toolchain-{version}.tar.gz"
         jobs["release"] = {
-            "runs-on": "ubuntu-latest",
+            "runs-on": "ubuntu-24.04",
             "needs": [job.build_job_name for job in releasable_artifacts] + test_jobs,
             "steps": [
                          checkout,
