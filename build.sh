@@ -56,7 +56,7 @@ git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
 # Be more resilient to https://git.savannah.gnu.org returning 50X errors.
 cat <<EOF >> config.mak
-DL_CMD = wget --retry-connrefused --retry-on-http-error=503 --waitretry=1 --tries=5 -c -O
+DL_CMD = wget --retry-connrefused --retry-on-http-error=502 --waitretry=1 --tries=5 -c -O
 EOF
 
 # Linux uses a two-stage build in which the first stage builds a musl toolchain for the host using the host's compiler.
