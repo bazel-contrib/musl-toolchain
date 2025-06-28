@@ -305,7 +305,6 @@ jobs:
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n)\n\nEOF\n"
     - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
-        -- -//:run_built_binary_aarch64-unknown-linux-gnu_test
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -558,3 +557,51 @@ jobs:
         name: test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl
         path: output/test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl
         if-no-files-found: error
+  test-aarch64:
+    runs-on: ubuntu-24.04-arm
+    needs:
+    - unknown-linux-gnu-x86_64-aarch64-test-build
+    - unknown-linux-gnu-aarch64-aarch64-test-build
+    - apple-darwin-x86_64-aarch64-test-build
+    - apple-darwin-aarch64-aarch64-test-build
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    - name: Download test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl
+      uses: actions/download-artifact@v4
+      with:
+        name: test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl
+        path: .
+    - name: Download test-binary-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl
+      uses: actions/download-artifact@v4
+      with:
+        name: test-binary-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl
+        path: .
+    - name: Download test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl
+      uses: actions/download-artifact@v4
+      with:
+        name: test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl
+        path: .
+    - name: Download test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl
+      uses: actions/download-artifact@v4
+      with:
+        name: test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl
+        path: .
+    - name: Skipping downloading bazelisk - already installed
+      run: bazel --version
+    - name: Generate tester workspace file
+      run: "cat >test-workspaces/tester/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
+        , \"http_file\")\n\nhttp_file(\n    name = \"built_binary_x86_64-unknown-linux-gnu\"\
+        ,\n    executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n)\n\nhttp_file(\n    name = \"built_binary_aarch64-unknown-linux-gnu\"\
+        ,\n    executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n)\n\nhttp_file(\n    name = \"built_binary_x86_64-apple-darwin\",\n   \
+        \ executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n)\n\nhttp_file(\n    name = \"built_binary_aarch64-apple-darwin\",\n  \
+        \  executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n)\n\nEOF\n"
+    - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all

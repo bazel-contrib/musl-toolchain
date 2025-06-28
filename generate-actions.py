@@ -695,7 +695,7 @@ def make_jobs(release, version):
     target_os = OS.Linux
     target_machines = [
         (Architecture.X86_64, linux_x86_64_runner),
-        (Architecture.ARM64, linux_aarch64_runner if release else None),
+        (Architecture.ARM64, linux_aarch64_runner),
     ]
 
     releasable_artifacts = []
@@ -793,7 +793,7 @@ def make_jobs(release, version):
                          install_bazel(target_os, target_arch),
                          generate_tester_workspace_file(test_build_jobs[target_arch]),
                          {
-                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all -- " + ("" if release else "-//:run_built_binary_aarch64-unknown-linux-gnu_test"),
+                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all",
                          },
                      ],
         }

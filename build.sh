@@ -17,8 +17,10 @@ MUSL_VERSION=1.2.3
 if [[ "Linux" == "$(uname)" ]]; then
     if [[ "x86_64" == "$(uname -p)" ]]; then
         PLATFORM=x86_64-unknown-linux-gnu
+        HOST=x86_64-linux-musl
     else
         PLATFORM=aarch64-unknown-linux-gnu
+        HOST=aarch64-linux-musl
     fi
 
     working_directory="$(mktemp -d)"
@@ -52,28 +54,26 @@ git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_direct
 cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
+# Linux uses a two-stage build in which the first stage builds a musl toolchain for the host using the host's compiler.
+# The second (and on macOS only) stage then builds the final toolchain using the stage1 toolchain. This is necessary to
+# avoid a glibc dependency of the final toolchain on Linux, as the host compiler is usually glibc-based.
 if [[ "Linux" == "$(uname)" ]]; then
-  # Stage 1: Build preliminary toolchain
   echo "Building stage1 toolchain..."
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install OUTPUT="${working_directory}/output_stage1"
+  TARGET="${HOST}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${HOST}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install OUTPUT="${working_directory}/output_stage1"
 
-  # Stage 2: Build final toolchain using the stage1 toolchain
   echo "Building stage2 toolchain..."
   # Clean previous build artifacts but keep downloaded sources and stage1 output
   make clean
   rm -rf build/
-
+  # See https://github.com/richfelker/musl-cross-make/issues/64#issuecomment-497881830 for why --static is needed.
   cat <<EOF >> config.mak
-COMMON_CONFIG += CC="${working_directory}/output_stage1/bin/${TARGET}-gcc -static --static" CXX="${working_directory}/output_stage1/bin/${TARGET}-g++ -static --static"
+COMMON_CONFIG += CC="${working_directory}/output_stage1/bin/${HOST}-gcc -static --static" CXX="${working_directory}/output_stage1/bin/${HOST}-g++ -static --static"
 EOF
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
-else
-  # Standard single-stage build for non-Linux platforms (macOS)
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
-  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 fi
+
+TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 
 cd output
 

@@ -306,8 +306,7 @@ jobs:
         \  executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl\
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n)\n\nEOF\n"
-    - run: 'cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
-        -- '
+    - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -607,8 +606,7 @@ jobs:
         \  executable = True,\n    sha256 = \"$(sha256sum test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl\
         \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/test-binary-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n)\n\nEOF\n"
-    - run: 'cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
-        -- '
+    - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
   release:
     runs-on: ubuntu-latest
     needs:
