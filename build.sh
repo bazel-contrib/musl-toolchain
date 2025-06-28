@@ -54,6 +54,11 @@ git clone https://github.com/bazel-contrib/musl-cross-make.git "${working_direct
 cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
+# Be more resilient to https://git.savannah.gnu.org returning 50X errors.
+cat <<EOF >> config.mak
+DL_CMD = wget --retry-connrefused --waitretry=1 -c -O
+EOF
+
 # Linux uses a two-stage build in which the first stage builds a musl toolchain for the host using the host's compiler.
 # The second (and on macOS only) stage then builds the final toolchain using the stage1 toolchain. This is necessary to
 # avoid a glibc dependency of the final toolchain on Linux, as the host compiler is usually glibc-based.
