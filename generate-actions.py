@@ -100,6 +100,10 @@ linux_x86_64_runner = BaseRunner(
     },
     build_setup_steps=[
         {
+            "name": "Install musl",
+            "run": "sudo apt-get update && sudo apt-get install -y musl-dev musl-tools",
+        },
+        {
             "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },
     ],
@@ -111,6 +115,10 @@ linux_aarch64_runner = BaseRunner(
         "runs-on": "ubuntu-24.04-arm",
     },
     build_setup_steps=[
+        {
+            "name": "Install musl",
+            "run": "sudo apt-get update && sudo apt-get install -y musl-dev musl-tools",
+        },
         {
             "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },

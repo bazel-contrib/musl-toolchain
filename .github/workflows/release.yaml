@@ -10,6 +10,8 @@ jobs:
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-latest
     steps:
+    - name: Install musl
+      run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
     - run: sudo ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -75,6 +77,8 @@ jobs:
   unknown-linux-gnu-aarch64-x86_64:
     runs-on: ubuntu-24.04-arm
     steps:
+    - name: Install musl
+      run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
     - run: sudo ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -307,6 +311,8 @@ jobs:
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-latest
     steps:
+    - name: Install musl
+      run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
     - run: sudo ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v4
@@ -368,6 +374,8 @@ jobs:
   unknown-linux-gnu-aarch64-aarch64:
     runs-on: ubuntu-24.04-arm
     steps:
+    - name: Install musl
+      run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
     - run: sudo ln -s /usr/bin/tar /usr/bin/gnutar
     - name: Checkout repo
       uses: actions/checkout@v4
