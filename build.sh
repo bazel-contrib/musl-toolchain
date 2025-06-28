@@ -53,10 +53,6 @@ cd "${working_directory}"
 git checkout 58e60ab120b4588e4094263709c3f0c3ef5b0a43
 
 if [[ "Linux" == "$(uname)" ]]; then
-  cat <<EOF >>config.mak
-GCC_CONFIG += --disable-nls
-EOF
-
   # Stage 1: Build preliminary toolchain
   echo "Building stage1 toolchain..."
   TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
@@ -67,20 +63,12 @@ EOF
   # Clean previous build artifacts but keep downloaded sources and stage1 output
   make clean
   rm -rf build/
-  # Point CC to the stage1 GCC and set LDFLAGS for static linking.
-  # We also need to tell musl-cross-make to build a "native" compiler.
-  # The `HOST` variable in litecross/Makefile is used for this.
-  # We'll also introduce a new variable `STATIC_HOST_COMPILER=y` to signal
-  # that we want the host components (i.e., gcc itself) to be static.
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" LDFLAGS="-static" \
-      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" || {
-        # print contents of config.log in all subdirectories
-        echo "Build failed, printing config.log files:"
-        find . -name config.log -exec echo "Contents of {}:" \; -exec cat {} \; -exec echo \;
-        exit 1
-    }
-  TARGET="${TARGET}" HOST="${TARGET}" CC="${working_directory}/output_stage1/bin/${TARGET}-gcc" LDFLAGS="-static" \
-      make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
+
+  cat <<EOF >> config.mak
+COMMON_CONFIG += CC="${working_directory}/output_stage1/bin/${TARGET}-gcc -static --static" CXX="${working_directory}/output_stage1/bin/${TARGET}-g++ -static --static"
+EOF
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 else
   # Standard single-stage build for non-Linux platforms (macOS)
   TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
