@@ -4,14 +4,19 @@
 
 This toolchain allows cross-compiling binaries for Linux from various platforms. It can be used to produce binaries which don't dynamically link `libc`, by statically linking `musl`'s `libc` implementation.
 
-The supported target and execution platforms are:
+The supported execution platforms are:
 
 * Linux x86_64
 * Linux arm64
 * macOS x86_64
 * macOS arm64
 
-Due to limitations of Linux arm64 runners available for GitHub Actions, the toolchain requires glibc >= 2.35 to run on Linux arm64 executors.
+The supported target platforms are: 
+
+* Linux x86_64
+* Linux arm64
+
+The toolchain binaries are statically linked against musl on Linux and thus don't require (a particular version of) glibc to be available.
 
 ## Setup
 
