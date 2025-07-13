@@ -1,17 +1,22 @@
 {
-  "homepage": "https://github.com/bazel-contrib/musl-toolchain",
-  "maintainers": [
-    {
-      "email": "dawagner@gmail.com",
-      "github": "illicitonion",
-      "name": "Daniel Wagner-Hall"
-    },
-    {
-      "email": "fabian@meumertzhe.im",
-      "github": "fmeum",
-      "name": "Fabian Meumertzheim"
-    }
-  ],
-  "versions": [],
-  "yanked_versions": {}
+    "homepage": "https://github.com/bazel-contrib/musl-toolchain",
+    "maintainers": [
+        {
+            "email": "dawagner@gmail.com",
+            "github": "illicitonion",
+            "name": "Daniel Wagner-Hall",
+            "github_user_id": 1131704
+        },
+        {
+            "email": "fabian@meumertzhe.im",
+            "github": "fmeum",
+            "name": "Fabian Meumertzheim",
+            "github_user_id": 4312191
+        }
+    ],
+    "repository": [
+        "github:bazel-contrib/musl-toolchain"
+    ],
+    "versions": [],
+    "yanked_versions": {}
 }

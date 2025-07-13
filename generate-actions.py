@@ -9,9 +9,7 @@ import yaml
 
 checkout = {
     "name": "Checkout repo",
-    # Pin to v3 not newer, because it uses a version of node which is compatible with amazonlinux2.
-    # See https://github.com/actions/runner/issues/2906 for more details.
-    "uses": "actions/checkout@v3",
+    "uses": "actions/checkout@v4",
 }
 
 
@@ -86,8 +84,8 @@ def install_bazel(os: OS, arch: Architecture):
     match os:
         case OS.Linux:
             return {
-                "name": "Download bazelisk as bazel",
-                "run": f"curl --fail -L -o /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-{os.for_bazel_download}-{arch.for_bazel_download} && chmod 0755 /usr/local/bin/bazel",
+                "name": "Skipping downloading bazelisk - already installed",
+                "run": "bazel --version",
             }
         case OS.MacOS:
             return {
@@ -98,43 +96,29 @@ def install_bazel(os: OS, arch: Architecture):
 
 linux_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "ubuntu-latest",
-        "container": "amazonlinux:2",
-        # Don't have GitHub Actions force a newer node which uses too new a glibc when checking out the repo.
-        # See https://github.com/actions/runner/issues/2906 for more details.
-        "env": {
-            "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION": True,
-            "ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION": "node16",
-        },
+        "runs-on": "ubuntu-24.04",
     },
     build_setup_steps=[
         {
-            "run": "yum install -y bzip2 git gzip make patch tar wget which",
+            "name": "Install musl",
+            "run": "sudo apt-get update && sudo apt-get install -y musl-dev musl-tools",
         },
         {
-            "run": 'yum group install -y "Development Tools"',
-        },
-        {
-            "run": "ln -s /usr/bin/tar /usr/bin/gnutar",
+            "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },
     ],
-    test_setup_steps=[
-        {
-            # The checkout action assumes tar is present on $PATH.
-            "run": "yum install -y gzip tar",
-        },
-    ],
+    test_setup_steps=[],
 )
 
 linux_aarch64_runner = BaseRunner(
     top_level_properties={
-        # This runner doesn't support nested virtualization or Ubuntu 20.04,
-        # so we have to live with a glibc >= 2.35 requirement.
-        # It can be configured at (requires admin access to the repo):
-        # https://app.buildjet.com/53858925
-        "runs-on": "buildjet-2vcpu-ubuntu-2204-arm",
+        "runs-on": "ubuntu-24.04-arm",
     },
     build_setup_steps=[
+        {
+            "name": "Install musl",
+            "run": "sudo apt-get update && sudo apt-get install -y musl-dev musl-tools",
+        },
         {
             "run": "sudo ln -s /usr/bin/tar /usr/bin/gnutar",
         },
@@ -150,7 +134,7 @@ _setup_darwin_steps = [
 
 darwin_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-12",
+        "runs-on": "macos-13",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
@@ -158,7 +142,7 @@ darwin_x86_64_runner = BaseRunner(
 
 darwin_aarch64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-14",
+        "runs-on": "macos-15",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
@@ -168,7 +152,7 @@ darwin_aarch64_runner = BaseRunner(
 def upload(name, path):
     return {
         "name": f"Upload {name}",
-        "uses": "actions/upload-artifact@v3",
+        "uses": "actions/upload-artifact@v4",
         "with": {
             "name": name,
             "path": path,
@@ -180,7 +164,7 @@ def upload(name, path):
 def download(name):
     return {
         "name": f"Download {name}",
-        "uses": "actions/download-artifact@v3",
+        "uses": "actions/download-artifact@v4",
         "with": {
             "name": name,
             "path": ".",
@@ -703,18 +687,15 @@ def make_jobs(release, version):
 
     source_machines = [
         (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
+        (OS.Linux, Architecture.ARM64, linux_aarch64_runner),
         (OS.MacOS, Architecture.X86_64, darwin_x86_64_runner),
         (OS.MacOS, Architecture.ARM64, darwin_aarch64_runner),
     ]
-    # Test ARM64 on Linux only in release runs as it relies on a third-party
-    # runner that isn't free to use.
-    if release:
-        source_machines.append((OS.Linux, Architecture.ARM64, linux_aarch64_runner))
 
     target_os = OS.Linux
     target_machines = [
         (Architecture.X86_64, linux_x86_64_runner),
-        (Architecture.ARM64, linux_aarch64_runner if release else None),
+        (Architecture.ARM64, linux_aarch64_runner),
     ]
 
     releasable_artifacts = []
@@ -812,7 +793,7 @@ def make_jobs(release, version):
                          install_bazel(target_os, target_arch),
                          generate_tester_workspace_file(test_build_jobs[target_arch]),
                          {
-                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all -- " + ("" if release else "-//:run_built_binary_aarch64-unknown-linux-gnu_test"),
+                             "run": "cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all",
                          },
                      ],
         }
@@ -822,7 +803,7 @@ def make_jobs(release, version):
         release_body_path = "release-notes.txt"
         release_archive_path = f"musl_toolchain-{version}.tar.gz"
         jobs["release"] = {
-            "runs-on": "ubuntu-latest",
+            "runs-on": "ubuntu-24.04",
             "needs": [job.build_job_name for job in releasable_artifacts] + test_jobs,
             "steps": [
                          checkout,
