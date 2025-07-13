@@ -82,9 +82,24 @@ TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netc
 
 cd output
 
-# The Linux binaries are very large if not stripped.
 if [[ "Linux" == "$(uname)" ]]; then
+  # The Linux binaries are very large if not stripped.
   find bin libexec -type f -executable -exec strip {} \;
+  # Check that gcc and g++ are stripped and statically linked.
+  for bin in bin/${TARGET}-gcc bin/${TARGET}-g++ ; do
+    if [[ ! -x "${bin}" ]]; then
+      echo >&2 "Error: ${bin} is not executable"
+      exit 1
+    fi
+    if ! file "${bin}" | grep -q "statically linked"; then
+      echo >&2 "Error: ${bin} is not statically linked"
+      exit 1
+    fi
+    if ! file "${bin}" | grep -q "stripped"; then
+      echo >&2 "Error: ${bin} is not stripped"
+      exit 1
+    fi
+  done
 fi
 
 # Fix up the link to the dynamic linker to be a relative path.
