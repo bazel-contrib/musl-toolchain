@@ -680,25 +680,27 @@ jobs:
       run: "touch toolchains_musl.bzl\n\ncat >toolchains_musl.bzl <<'EOF'\nload(\"\
         @bazel_features//:features.bzl\", \"bazel_features\")\nload(\":repositories.bzl\"\
         , \"load_musl_toolchains\")\n\ndef _toolchains_musl(module_ctx):\n    extra_exec_compatible_with\
-        \ = []\n    extra_target_compatible_with = []\n    for module in module_ctx.modules:\n\
-        \        if not module.tags.config:\n            continue\n        if not\
-        \ module.is_root:\n            fail(\"musl_toolchains.config can only be used\
-        \ from the root module. Add 'dev_dependency = True' to 'use_extension' to\
-        \ ignore it in non-root modules.\")\n        if len(module.tags.config) >\
-        \ 1:\n            fail(\n                \"Only one musl_toolchains.config\
-        \ tag is allowed, got\",\n                module.tags.config[0],\n       \
-        \         \"and\",\n                module.tags.config[1],\n            )\n\
-        \        config = module.tags.config[0]\n        extra_exec_compatible_with\
+        \ = []\n    extra_target_compatible_with = []\n    target_settings = []\n\
+        \    for module in module_ctx.modules:\n        if not module.tags.config:\n\
+        \            continue\n        if not module.is_root:\n            fail(\"\
+        musl_toolchains.config can only be used from the root module. Add 'dev_dependency\
+        \ = True' to 'use_extension' to ignore it in non-root modules.\")\n      \
+        \  if len(module.tags.config) > 1:\n            fail(\n                \"\
+        Only one musl_toolchains.config tag is allowed, got\",\n                module.tags.config[0],\n\
+        \                \"and\",\n                module.tags.config[1],\n      \
+        \      )\n        config = module.tags.config[0]\n        extra_exec_compatible_with\
         \ = config.extra_exec_compatible_with\n        extra_target_compatible_with\
-        \ = config.extra_target_compatible_with\n\n    load_musl_toolchains(\n   \
-        \     extra_exec_compatible_with = [str(label) for label in extra_exec_compatible_with],\n\
-        \        extra_target_compatible_with = [str(label) for label in extra_target_compatible_with],\n\
-        \    )\n\n    if bazel_features.external_deps.extension_metadata_has_reproducible:\n\
+        \ = config.extra_target_compatible_with\n        target_settings = config.target_settings\n\
+        \n    load_musl_toolchains(\n        extra_exec_compatible_with = [str(label)\
+        \ for label in extra_exec_compatible_with],\n        extra_target_compatible_with\
+        \ = [str(label) for label in extra_target_compatible_with],\n        target_settings\
+        \ = [str(label) for label in target_settings],\n    )\n\n    if bazel_features.external_deps.extension_metadata_has_reproducible:\n\
         \        return module_ctx.extension_metadata(reproducible = True)\n    else:\n\
         \        return None\n\n_config = tag_class(\n    attrs = {\n        \"extra_exec_compatible_with\"\
         : attr.label_list(),\n        \"extra_target_compatible_with\": attr.label_list(),\n\
-        \    },\n)\n\ntoolchains_musl = module_extension(\n    implementation = _toolchains_musl,\n\
-        \    tag_classes = {\n        \"config\": _config,\n    },\n)\nEOF\n"
+        \        \"target_settings\": attr.label_list(),\n    },\n)\n\ntoolchains_musl\
+        \ = module_extension(\n    implementation = _toolchains_musl,\n    tag_classes\
+        \ = {\n        \"config\": _config,\n    },\n)\nEOF\n"
     - name: Generate BUILD.bazel
       run: touch BUILD.bazel
     - name: Generate toolchains.bzl
@@ -712,6 +714,7 @@ jobs:
         \     \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
@@ -719,6 +722,7 @@ jobs:
         \    \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
@@ -726,6 +730,7 @@ jobs:
         \     \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
@@ -733,6 +738,7 @@ jobs:
         \    \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
@@ -740,6 +746,7 @@ jobs:
         \     \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
@@ -747,6 +754,7 @@ jobs:
         \    \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
@@ -754,6 +762,7 @@ jobs:
         \     \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
@@ -761,13 +770,15 @@ jobs:
         \    \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
+        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\",\n    )\n\ntoolchain_repo = repository_rule(\n    implementation = _toolchain_repo,\n\
         \    attrs = {\n        \"extra_exec_compatible_with\": attr.string_list(),\n\
-        \        \"extra_target_compatible_with\": attr.string_list(),\n    },\n)\n\
-        \ndef load_musl_toolchains(extra_exec_compatible_with=[], extra_target_compatible_with=[]):\n\
-        \    http_archive(\n        name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        \        \"extra_target_compatible_with\": attr.string_list(),\n        \"\
+        target_settings\": attr.string_list(),\n    },\n)\n\ndef load_musl_toolchains(extra_exec_compatible_with=[],\
+        \ extra_target_compatible_with=[], target_settings=[]):\n    http_archive(\n\
+        \        name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n        sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
         \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
         ,\n    )\n\n    http_archive(\n        name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
@@ -793,27 +804,40 @@ jobs:
         \ | awk '{print $1}')\",\n        url = \"https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
         ,\n    )\n\n\n    toolchain_repo(\n        name = \"musl_toolchains_hub\"\
         ,\n        extra_exec_compatible_with = extra_exec_compatible_with,\n    \
-        \    extra_target_compatible_with = extra_target_compatible_with,\n    )\n\
-        EOF\n"
+        \    extra_target_compatible_with = extra_target_compatible_with,\n      \
+        \  target_settings = target_settings,\n    )\nEOF\n"
+    - name: Generate bcr_test/.bazelrc
+      run: 'mkdir -p bcr_test
+
+
+        cat >bcr_test/.bazelrc <<''EOF''
+
+        common --//:toolchain_flavor=musl
+
+        EOF
+
+        '
     - name: Generate bcr_test/MODULE.bazel
       run: "mkdir -p bcr_test\ntouch bcr_test/MODULE.bazel\n\ncat >bcr_test/MODULE.bazel\
         \ <<'EOF'\nbazel_dep(name = \"toolchains_musl\")\nlocal_path_override(\n \
         \   module_name = \"toolchains_musl\",\n    path = \"..\",\n)\n\nbazel_dep(name\
-        \ = \"aspect_bazel_lib\", version = \"2.7.7\")\n\ntoolchains_musl = use_extension(\"\
-        @toolchains_musl//:toolchains_musl.bzl\", \"toolchains_musl\", dev_dependency\
-        \ = True)\ntoolchains_musl.config(\n    extra_target_compatible_with = [\"\
-        //:musl_on\"],\n)\nEOF\n"
+        \ = \"aspect_bazel_lib\", version = \"2.7.7\")\nbazel_dep(name = \"bazel_skylib\"\
+        , version = \"1.7.1\")\n\ntoolchains_musl = use_extension(\"@toolchains_musl//:toolchains_musl.bzl\"\
+        , \"toolchains_musl\", dev_dependency = True)\ntoolchains_musl.config(\n \
+        \   extra_target_compatible_with = [\"//:musl_on\"],\n    target_settings\
+        \ = [\"//:musl_flavor\"],\n)\nEOF\n"
     - name: Generate bcr_test/BUILD.bazel
       run: "mkdir -p bcr_test\ntouch bcr_test/BUILD.bazel\n\ncat >bcr_test/BUILD.bazel\
         \ <<'EOF2'\nload(\"@aspect_bazel_lib//lib:transitions.bzl\", \"platform_transition_binary\"\
-        )\n\npackage(default_visibility = [\"//visibility:public\"])\n\ngenrule(\n\
-        \    name = \"generate_source\",\n    outs = [\"main.cc\"],\n    cmd = \"\"\
-        \"cat >$@ <<EOF\n#include <stdio.h>\n\nint main(void) {\n  printf(\"Built\
-        \ on $$(uname) $$(uname -m)\\\\n\");\n  return 0;\n}\nEOF\n\"\"\",\n)\n\n\
-        cc_binary(\n    name = \"binary\",\n    srcs = [\"main.cc\"],\n    tags =\
-        \ [\"manual\"],\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_x86_64\"\
-        ,\n    binary = \":binary\",\n    target_platform = \":linux_x86_64\",\n)\n\
-        \nplatform_transition_binary(\n    name = \"binary_linux_aarch64\",\n    binary\
+        )\nload(\"@bazel_skylib//rules:common_settings.bzl\", \"string_flag\")\n\n\
+        package(default_visibility = [\"//visibility:public\"])\n\ngenrule(\n    name\
+        \ = \"generate_source\",\n    outs = [\"main.cc\"],\n    cmd = \"\"\"cat >$@\
+        \ <<EOF\n#include <stdio.h>\n\nint main(void) {\n  printf(\"Built on $$(uname)\
+        \ $$(uname -m)\\\\n\");\n  return 0;\n}\nEOF\n\"\"\",\n)\n\ncc_binary(\n \
+        \   name = \"binary\",\n    srcs = [\"main.cc\"],\n    tags = [\"manual\"\
+        ],\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_x86_64\",\n\
+        \    binary = \":binary\",\n    target_platform = \":linux_x86_64\",\n)\n\n\
+        platform_transition_binary(\n    name = \"binary_linux_aarch64\",\n    binary\
         \ = \":binary\",\n    target_platform = \":linux_aarch64\",\n)\n\nsh_test(\n\
         \    name = \"binary_test\",\n    srcs = [\"binary_test.sh\"],\n    data =\
         \ [\n        \":binary_linux_x86_64\",\n        \":binary_linux_aarch64\"\
@@ -827,7 +851,9 @@ jobs:
         \    name = \"musl\",\n    default_constraint_value = \":musl_off\",\n)\n\
         constraint_value(\n    name = \"musl_on\",\n    constraint_setting = \":musl\"\
         ,\n)\nconstraint_value(\n    name = \"musl_off\",\n    constraint_setting\
-        \ = \":musl\",\n)\nEOF2\n"
+        \ = \":musl\",\n)\n\nstring_flag(\n    name = \"toolchain_flavor\",\n    build_setting_default\
+        \ = \"not_musl\",\n)\n\nconfig_setting(\n    name = \"musl_flavor\",\n   \
+        \ flag_values = {\n        \":toolchain_flavor\": \"musl\",\n    },\n)\nEOF2\n"
     - name: Generate bcr_test/binary_test.sh
       run: 'mkdir -p bcr_test
 
