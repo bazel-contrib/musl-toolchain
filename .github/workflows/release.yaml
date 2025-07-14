@@ -714,7 +714,7 @@ jobs:
         \     \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
@@ -722,7 +722,7 @@ jobs:
         \    \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
@@ -730,7 +730,7 @@ jobs:
         \     \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
@@ -738,7 +738,7 @@ jobs:
         \    \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:x86_64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
@@ -746,7 +746,7 @@ jobs:
         \     \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
@@ -754,7 +754,7 @@ jobs:
         \    \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
@@ -762,7 +762,7 @@ jobs:
         \     \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\" + \"\"\"toolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
@@ -770,7 +770,7 @@ jobs:
         \    \"@platforms//os:osx\",\n    ] + \"\"\" + repr(rctx.attr.extra_exec_compatible_with)\
         \ + \"\"\",\n    target_compatible_with = [\n        \"@platforms//cpu:arm64\"\
         ,\n        \"@platforms//os:linux\",\n    ] + \"\"\" + repr(rctx.attr.extra_target_compatible_with)\
-        \ + \"\"\"\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
+        \ + \"\"\",\n    target_settings =  + \"\"\" + repr(rctx.attr.target_settings)\
         \ + \"\"\",\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\n\"\
         \"\",\n    )\n\ntoolchain_repo = repository_rule(\n    implementation = _toolchain_repo,\n\
