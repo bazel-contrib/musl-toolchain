@@ -300,7 +300,7 @@ def generate_toolchain(
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
 
     if target_settings_expr:
-        to_return += f"""
+        to_return += f""",
     target_settings = """
         to_return += ' + """ + repr(' + target_settings_expr + ') + """'
 
@@ -345,7 +345,7 @@ def generate_test_toolchain(
         to_return += ' + """ + repr(' + extra_target_compatible_expr + ') + """'
 
     if target_settings_expr:
-        to_return += f"""
+        to_return += f""",
     target_settings = """
         to_return += ' + """ + repr(' + target_settings_expr + ') + """'
 
