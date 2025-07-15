@@ -302,7 +302,7 @@ def generate_toolchain(
     if target_settings_expr:
         to_return += f""",
     target_settings = """
-        to_return += ' + """ + repr(' + target_settings_expr + ') + """'
+        to_return += '""" + repr(' + target_settings_expr + ') + """'
 
     to_return += f""",
     toolchain = "@{repo_name}",
@@ -347,7 +347,7 @@ def generate_test_toolchain(
     if target_settings_expr:
         to_return += f""",
     target_settings = """
-        to_return += ' + """ + repr(' + target_settings_expr + ') + """'
+        to_return += '""" + repr(' + target_settings_expr + ') + """'
 
     to_return += f""",
     toolchain = "@{repo_name}//:{repo_name}_test_toolchain",
