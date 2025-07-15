@@ -7,8 +7,17 @@ name: Release
     tags:
     - '*'
 jobs:
+  check-generated:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    - name: Check generated files are up to date
+      run: python3 generate-actions.py && git diff --exit-code
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-24.04
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -76,6 +85,8 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-aarch64-x86_64:
     runs-on: ubuntu-24.04-arm
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -139,6 +150,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-x86_64-x86_64:
     runs-on: macos-13
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -200,6 +213,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-aarch64-x86_64:
     runs-on: macos-15
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -309,6 +324,8 @@ jobs:
     - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-24.04
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -372,6 +389,8 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-aarch64-aarch64:
     runs-on: ubuntu-24.04-arm
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -439,6 +458,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-x86_64-aarch64:
     runs-on: macos-13
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -500,6 +521,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-aarch64-aarch64:
     runs-on: macos-15
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -822,7 +845,8 @@ jobs:
         \ <<'EOF'\nbazel_dep(name = \"toolchains_musl\")\nlocal_path_override(\n \
         \   module_name = \"toolchains_musl\",\n    path = \"..\",\n)\n\nbazel_dep(name\
         \ = \"aspect_bazel_lib\", version = \"2.7.7\")\nbazel_dep(name = \"bazel_skylib\"\
-        , version = \"1.7.1\")\n\ntoolchains_musl = use_extension(\"@toolchains_musl//:toolchains_musl.bzl\"\
+        , version = \"1.7.1\")\nbazel_dep(name = \"platforms\", version = \"0.0.9\"\
+        )\n\ntoolchains_musl = use_extension(\"@toolchains_musl//:toolchains_musl.bzl\"\
         , \"toolchains_musl\", dev_dependency = True)\ntoolchains_musl.config(\n \
         \   extra_target_compatible_with = [\"//:musl_on\"],\n    target_settings\
         \ = [\"//:musl_flavor\"],\n)\nEOF\n"
@@ -894,7 +918,7 @@ jobs:
     - name: Generate release archive
       run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz WORKSPACE
         MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel
-        bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh
+        bcr_test/.bazelrc bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh
     - name: Generate release body
       run: sha256=$(sha256sum musl_toolchain-${{github.ref_name}}.tar.gz | awk '{print
         $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'

@@ -5,8 +5,17 @@ name: PR
   pull_request: null
   workflow_dispatch: null
 jobs:
+  check-generated:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    - name: Check generated files are up to date
+      run: python3 generate-actions.py && git diff --exit-code
   unknown-linux-gnu-x86_64-x86_64:
     runs-on: ubuntu-24.04
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -74,6 +83,8 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-aarch64-x86_64:
     runs-on: ubuntu-24.04-arm
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -137,6 +148,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-x86_64-x86_64:
     runs-on: macos-13
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -198,6 +211,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-aarch64-x86_64:
     runs-on: macos-15
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -307,6 +322,8 @@ jobs:
     - run: cd test-workspaces/tester && CC=/bin/false bazel test ... --test_output=all
   unknown-linux-gnu-x86_64-aarch64:
     runs-on: ubuntu-24.04
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -370,6 +387,8 @@ jobs:
         if-no-files-found: error
   unknown-linux-gnu-aarch64-aarch64:
     runs-on: ubuntu-24.04-arm
+    needs:
+    - check-generated
     steps:
     - name: Install musl
       run: sudo apt-get update && sudo apt-get install -y musl-dev musl-tools
@@ -437,6 +456,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-x86_64-aarch64:
     runs-on: macos-13
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
@@ -498,6 +519,8 @@ jobs:
         if-no-files-found: error
   apple-darwin-aarch64-aarch64:
     runs-on: macos-15
+    needs:
+    - check-generated
     steps:
     - run: brew install wget md5sha1sum gnu-tar
     - name: Checkout repo
