@@ -12,6 +12,11 @@ checkout = {
     "uses": "actions/checkout@v4",
 }
 
+check_generated_files = {
+    "name": "Check generated files are up to date",
+    "run": "python3 generate-actions.py && git diff --exit-code",
+}
+
 platforms_version = "0.0.9"
 
 class Architecture(Enum):
@@ -171,7 +176,6 @@ def download(name):
             "path": ".",
         },
     }
-
 
 def get_platform_sha256sum(os: OS):
     match os:
@@ -726,7 +730,15 @@ def write_generated_header(file):
 
 
 def make_jobs(release, version):
-    jobs = {}
+    jobs = {
+        "check-generated": {
+            "runs-on": "ubuntu-24.04",
+            "steps": [
+                checkout,
+                check_generated_files,
+            ],
+        },
+    }
 
     source_machines = [
         (OS.Linux, Architecture.X86_64, linux_x86_64_runner),
@@ -752,6 +764,7 @@ def make_jobs(release, version):
             )
             musl_filename = musl_filename_without_extension(source_os, source_arch, target_arch) + ".tar.gz"
             jobs[build_job_name] = source_runner.top_level_properties | {
+                "needs": ["check-generated"],
                 "steps": source_runner.build_setup_steps
                          + [
                              checkout,
