@@ -12,6 +12,7 @@ checkout = {
     "uses": "actions/checkout@v4",
 }
 
+platforms_version = "0.0.9"
 
 class Architecture(Enum):
     ARM64 = 1
@@ -411,7 +412,7 @@ module(
 )
 
 bazel_dep(name = "bazel_features", version = "1.9.0")
-bazel_dep(name = "platforms", version = "0.0.9")
+bazel_dep(name = "platforms", version = "{platforms_version}")
 
 toolchains_musl = use_extension("//:toolchains_musl.bzl", "toolchains_musl")
 use_repo(toolchains_musl, "musl_toolchains_hub")
@@ -549,6 +550,7 @@ local_path_override(
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.7.7")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "platforms", version = "{platforms_version}")
 
 toolchains_musl = use_extension("@toolchains_musl//:toolchains_musl.bzl", "toolchains_musl", dev_dependency = True)
 toolchains_musl.config(
@@ -682,7 +684,7 @@ EOF
         },
         {
             "name": "Generate release archive",
-            "run": f"./deterministic-tar.sh {output_path} WORKSPACE MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
+            "run": f"./deterministic-tar.sh {output_path} WORKSPACE MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/.bazelrc bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
         },
     ]
 
