@@ -6,6 +6,10 @@ name: Release
   push:
     tags:
     - '*'
+permissions:
+  id-token: write
+  attestations: write
+  contents: write
 jobs:
   check-generated:
     runs-on: ubuntu-24.04
@@ -1079,3 +1083,11 @@ jobs:
         asset_name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         asset_path: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         asset_content_type: application/gzip
+  publish:
+    needs:
+    - release
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag_name: ${{github.ref_name}}
+    secrets:
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}

@@ -906,6 +906,16 @@ def make_jobs(release, version):
                          for artifact in releasable_artifacts
                      ],
         }
+        jobs["publish"] = {
+            "needs": ["release"],
+            "uses": "./.github/workflows/publish.yaml",
+            "with": {
+                "tag_name": version,
+            },
+            "secrets": {
+                "publish_token": "${{ secrets.BCR_PUBLISH_TOKEN }}",
+            },
+        }
     return jobs
 
 
@@ -933,6 +943,11 @@ def main():
                         "*",
                     ]
                 }
+            },
+            "permissions": {
+                "id-token": "write",
+                "attestations": "write",
+                "contents": "write",
             },
             "jobs": make_jobs(release=True, version="${{github.ref_name}}"),
         }
