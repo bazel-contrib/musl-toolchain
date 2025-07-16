@@ -389,6 +389,18 @@ def generate_release_archive(toolchain_infos, output_path, version):
                 target_settings_expr="rctx.attr.target_settings",
             )
             for artifact in toolchain_infos
+        ] + [
+            generate_test_toolchain(
+                artifact.repo_name,
+                artifact.target_arch,
+                wrap_in_triple_quotes=True,
+                # Explicitly omit extra_exec_compatible_with as the test
+                # binaries have no exec platform requirements beyond matching
+                # OS/CPU.
+                extra_target_compatible_expr="rctx.attr.extra_target_compatible_with",
+                target_settings_expr="rctx.attr.target_settings",
+            )
+            for artifact in toolchain_infos
         ]
     )
 
