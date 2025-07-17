@@ -905,6 +905,18 @@ jobs:
 
         common --//:toolchain_flavor=musl
 
+        common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+
+
+        # Simulate extra execution platforms that could run the transitioned cc_test
+
+        # binaries to verify that the test toolchain works correctly.
+
+        common --extra_execution_platforms=@platforms//host,//:linux_x86_64,//:linux_aarch64
+
+
+        common --test_output=errors
+
         EOF
 
         '
@@ -912,77 +924,86 @@ jobs:
       run: "mkdir -p bcr_test\ntouch bcr_test/MODULE.bazel\n\ncat >bcr_test/MODULE.bazel\
         \ <<'EOF'\nbazel_dep(name = \"toolchains_musl\")\nlocal_path_override(\n \
         \   module_name = \"toolchains_musl\",\n    path = \"..\",\n)\n\nbazel_dep(name\
-        \ = \"aspect_bazel_lib\", version = \"2.7.7\")\nbazel_dep(name = \"bazel_skylib\"\
+        \ = \"aspect_bazel_lib\", version = \"2.20.0\")\nbazel_dep(name = \"bazel_skylib\"\
         , version = \"1.7.1\")\nbazel_dep(name = \"platforms\", version = \"0.0.9\"\
-        )\n\ntoolchains_musl = use_extension(\"@toolchains_musl//:toolchains_musl.bzl\"\
-        , \"toolchains_musl\", dev_dependency = True)\ntoolchains_musl.config(\n \
-        \   extra_target_compatible_with = [\"//:musl_on\"],\n    target_settings\
-        \ = [\"//:musl_flavor\"],\n)\nEOF\n"
+        )\nbazel_dep(name = \"rules_cc\", version = \"0.1.3\")\nbazel_dep(name = \"\
+        rules_shell\", version = \"0.5.0\")\n\ntoolchains_musl = use_extension(\"\
+        @toolchains_musl//:toolchains_musl.bzl\", \"toolchains_musl\", dev_dependency\
+        \ = True)\ntoolchains_musl.config(\n    extra_target_compatible_with = [\"\
+        //:musl_on\"],\n    target_settings = [\"//:musl_flavor\"],\n)\n\nEOF\n"
     - name: Generate bcr_test/BUILD.bazel
       run: "mkdir -p bcr_test\ntouch bcr_test/BUILD.bazel\n\ncat >bcr_test/BUILD.bazel\
         \ <<'EOF2'\nload(\"@aspect_bazel_lib//lib:transitions.bzl\", \"platform_transition_binary\"\
-        )\nload(\"@bazel_skylib//rules:common_settings.bzl\", \"string_flag\")\n\n\
-        package(default_visibility = [\"//visibility:public\"])\n\ngenrule(\n    name\
-        \ = \"generate_source\",\n    outs = [\"main.cc\"],\n    cmd = \"\"\"cat >$@\
-        \ <<EOF\n#include <stdio.h>\n\nint main(void) {\n  printf(\"Built on $$(uname)\
-        \ $$(uname -m)\\\\n\");\n  return 0;\n}\nEOF\n\"\"\",\n)\n\ncc_binary(\n \
-        \   name = \"binary\",\n    srcs = [\"main.cc\"],\n    tags = [\"manual\"\
-        ],\n)\n\nplatform_transition_binary(\n    name = \"binary_linux_x86_64\",\n\
-        \    binary = \":binary\",\n    target_platform = \":linux_x86_64\",\n)\n\n\
-        platform_transition_binary(\n    name = \"binary_linux_aarch64\",\n    binary\
-        \ = \":binary\",\n    target_platform = \":linux_aarch64\",\n)\n\nsh_test(\n\
-        \    name = \"binary_test\",\n    srcs = [\"binary_test.sh\"],\n    data =\
-        \ [\n        \":binary_linux_x86_64\",\n        \":binary_linux_aarch64\"\
-        ,\n    ],\n    env = {\n        \"BINARY_LINUX_X86_64\": \"$(rootpath :binary_linux_x86_64)\"\
-        ,\n        \"BINARY_LINUX_AARCH64\": \"$(rootpath :binary_linux_aarch64)\"\
-        ,\n    },\n)\n\nplatform(\n    name = \"linux_x86_64\",\n    constraint_values\
-        \ = [\n        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\"\
-        ,\n        \":musl_on\",\n    ],\n)\n\nplatform(\n    name = \"linux_aarch64\"\
-        ,\n    constraint_values = [\n        \"@platforms//cpu:aarch64\",\n     \
-        \   \"@platforms//os:linux\",\n        \":musl_on\",\n    ],\n)\n\nconstraint_setting(\n\
-        \    name = \"musl\",\n    default_constraint_value = \":musl_off\",\n)\n\
+        )\nload(\"@bazel_skylib//rules:common_settings.bzl\", \"string_flag\")\nload(\"\
+        @platforms//host:constraints.bzl\", \"HOST_CONSTRAINTS\")\nload(\"@rules_cc//cc:cc_binary.bzl\"\
+        , \"cc_binary\")\nload(\"@rules_cc//cc:cc_library.bzl\", \"cc_library\")\n\
+        load(\"@rules_cc//cc:cc_shared_library.bzl\", \"cc_shared_library\")\nload(\"\
+        @rules_cc//cc:cc_test.bzl\", \"cc_test\")\nload(\"@rules_shell//shell:sh_test.bzl\"\
+        , \"sh_test\")\n\npackage(default_visibility = [\"//visibility:public\"])\n\
+        \ngenrule(\n    name = \"generate_lib_header\",\n    outs = [\"lib.h\"],\n\
+        \    cmd = \"\"\"cat >$@ <<'EOF'\n#ifndef LIB_H\n#define LIB_H\n\nconst char*\
+        \ get_build_info();\n\n#endif // LIB_H\nEOF\n\"\"\",\n)\n\ngenrule(\n    name\
+        \ = \"generate_lib_source\",\n    outs = [\"lib.cc\"],\n    cmd = \"\"\"cat\
+        \ >$@ <<EOF\n#include \"lib.h\"\n\n#include <cstdio>\n\nstatic const char*\
+        \ os = \"$$(uname)\";\nstatic const char* arch = \"$$(uname -m)\";\n\nconst\
+        \ char* get_build_info() {\n  static char info[256];\n  snprintf(info, sizeof(info),\
+        \ \"Built for %s on %s\", os, arch);\n  return info;\n}\nEOF\n\"\"\",\n)\n\
+        \ncc_library(\n    name = \"lib\",\n    srcs = [\"lib.cc\"],\n    hdrs = [\"\
+        lib.h\"],\n    tags = [\"manual\"],\n)\n\ngenrule(\n    name = \"generate_main_source\"\
+        ,\n    outs = [\"main.cc\"],\n    cmd = \"\"\"cat >$@ <<'EOF'\n#include <stdio.h>\n\
+        #include \"lib.h\"\n\nint main(void) {\n  printf(\"%s\\n\", get_build_info());\n\
+        \  return 0;\n}\nEOF\n\"\"\",\n)\n\ncc_binary(\n    name = \"binary\",\n \
+        \   srcs = [\"main.cc\"],\n    tags = [\"manual\"],\n    deps = [\":lib\"\
+        ],\n)\n\ncc_test(\n    name = \"test\",\n    srcs = [\"main.cc\"],\n    tags\
+        \ = [\"manual\"],\n    deps = [\":lib\"],\n)\n\ncc_shared_library(\n    name\
+        \ = \"shared_lib\",\n    tags = [\"manual\"],\n    deps = [\":lib\"],\n)\n\
+        \ncc_binary(\n    name = \"shared_binary\",\n    srcs = [\"main.cc\"],\n \
+        \   dynamic_deps = [\":shared_lib\"],\n    tags = [\"manual\"],\n    deps\
+        \ = [\":lib\"],\n)\n\n[\n    platform_transition_binary(\n        name = \"\
+        {}_{}\".format(name, target_platform),\n        testonly = True,\n       \
+        \ binary = \":{}\".format(name),\n        target_platform = \":{}\".format(target_platform),\n\
+        \    )\n    for name in [\n        \"binary\",\n        \"shared_binary\"\
+        ,\n        \"test\",\n    ]\n    for target_platform in [\n        \"linux_x86_64\"\
+        ,\n        \"linux_aarch64\",\n    ]\n]\n\nHOST_PLATFORM = \"{}_{}\".format(\n\
+        \    \"linux\" if \"@platforms//os:linux\" in HOST_CONSTRAINTS else \"darwin\"\
+        ,\n    \"x86_64\" if \"@platforms//os:x86_64\" in HOST_CONSTRAINTS else \"\
+        aarch64\",\n)\n\n[\n    sh_test(\n        name = \"{}_{}_test\".format(name,\
+        \ target_platform),\n        srcs = [\"binary_test.sh\"],\n        args =\
+        \ [\n            {\n                \"binary\": \"'statically linked'\",\n\
+        \                \"shared_binary\": \"'dynamically linked'\",\n          \
+        \      \"test\": \"'POSIX shell script'\",\n            }.get(name),\n   \
+        \     ] + [\n            \"x86-64\" if target_platform == \"linux_x86_64\"\
+        \ else \"aarch64\",\n        ] if name != \"test\" else [],\n        data\
+        \ = [\":{}_{}\".format(name, target_platform)],\n        env = {\n       \
+        \     \"BINARY\": \"$(rootpath :{}_{})\".format(name, target_platform),\n\
+        \            # Don't attempt to run shared_binary as it does require the musl\
+        \ linker to be installed\n            # on the host system.\n            \"\
+        SHOULD_RUN\": \"1\" if name != \"shared_binary\" and target_platform == HOST_PLATFORM\
+        \ else \"\",\n        },\n    )\n    for name in [\n        \"binary\",\n\
+        \        \"shared_binary\",\n        \"test\",\n    ]\n    for target_platform\
+        \ in [\n        \"linux_x86_64\",\n        \"linux_aarch64\",\n    ]\n]\n\n\
+        platform(\n    name = \"linux_x86_64\",\n    constraint_values = [\n     \
+        \   \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n     \
+        \   \":musl_on\",\n    ],\n)\n\nplatform(\n    name = \"linux_aarch64\",\n\
+        \    constraint_values = [\n        \"@platforms//cpu:aarch64\",\n       \
+        \ \"@platforms//os:linux\",\n        \":musl_on\",\n    ],\n)\n\nconstraint_setting(\n\
+        \    name = \"musl\",\n    default_constraint_value = \":musl_off\",\n)\n\n\
         constraint_value(\n    name = \"musl_on\",\n    constraint_setting = \":musl\"\
-        ,\n)\nconstraint_value(\n    name = \"musl_off\",\n    constraint_setting\
+        ,\n)\n\nconstraint_value(\n    name = \"musl_off\",\n    constraint_setting\
         \ = \":musl\",\n)\n\nstring_flag(\n    name = \"toolchain_flavor\",\n    build_setting_default\
         \ = \"not_musl\",\n)\n\nconfig_setting(\n    name = \"musl_flavor\",\n   \
         \ flag_values = {\n        \":toolchain_flavor\": \"musl\",\n    },\n)\nEOF2\n"
     - name: Generate bcr_test/binary_test.sh
-      run: 'mkdir -p bcr_test
-
-        touch bcr_test/binary_test.sh
-
-        chmod +x bcr_test/binary_test.sh
-
-
-        cat >bcr_test/binary_test.sh <<''EOF''
-
-        #!/usr/bin/env bash
-
-
-        set -euo pipefail
-
-
-        file -L "$BINARY_LINUX_X86_64" | grep ''statically linked'' || (echo "Binary
-        $BINARY_LINUX_X86_64 is not statically linked: $(file -L "$BINARY_LINUX_X86_64")"
-        && exit 1)
-
-        file -L "$BINARY_LINUX_X86_64" | grep ''x86-64'' || (echo "Binary $BINARY_LINUX_X86_64
-        is not x86-64: $(file -L "$BINARY_LINUX_X86_64")" && exit 1)
-
-
-        file -L "$BINARY_LINUX_AARCH64" | grep ''statically linked'' || (echo "Binary
-        $BINARY_LINUX_AARCH64 is not statically linked: $(file -L "$BINARY_LINUX_AARCH64")"
-        && exit 1)
-
-        file -L "$BINARY_LINUX_AARCH64" | grep ''aarch64'' || (echo "Binary $BINARY_LINUX_AARCH64
-        is not aarch64: $(file -L "$BINARY_LINUX_AARCH64")" && exit 1)
-
-
-        echo "All tests passed"
-
-        EOF
-
-        '
+      run: "mkdir -p bcr_test\ntouch bcr_test/binary_test.sh\nchmod +x bcr_test/binary_test.sh\n\
+        \ncat >bcr_test/binary_test.sh <<'EOF'\n#!/usr/bin/env bash\n\nset -euo pipefail\n\
+        \nfor arg in \"$@\"; do\n    file -L \"$BINARY\" | grep -q \"$arg\" || (echo\
+        \ \"Binary $BINARY does not have '$arg' in its file info: $(file -L \"$BINARY\"\
+        )\" && exit 1)\ndone\n\nif [[ -n \"${SHOULD_RUN:-}\" ]]; then\n    if ! \"\
+        $BINARY\"; then\n        echo \"Binary $BINARY failed to run\"\n        exit\
+        \ 1\n    fi\nelse\n    echo \"Skipping execution of $BINARY as SHOULD_RUN\
+        \ is not set\"\nfi\n\necho \"All tests passed\"\n\nEOF\n"
+    - name: Run BCR tests
+      run: cd bcr_test && bazel test ...
     - name: Generate release archive
       run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz WORKSPACE
         MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel
