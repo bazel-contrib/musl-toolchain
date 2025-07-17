@@ -707,7 +707,7 @@ cc_binary(
 
 HOST_PLATFORM = "{}_{}".format(
     "linux" if "@platforms//os:linux" in HOST_CONSTRAINTS else "darwin",
-    "x86_64" if "@paltforms//os:x86_64" in HOST_CONSTRAINTS else "aarch64",
+    "x86_64" if "@platforms//os:x86_64" in HOST_CONSTRAINTS else "aarch64",
 )
 
 [
