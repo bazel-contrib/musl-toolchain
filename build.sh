@@ -107,10 +107,10 @@ ln -sf libc.so "${TARGET}/lib/ld-musl-${TARGET_ARCH}.so.1"
 
 output_name_without_extension="musl-${MUSL_VERSION}-platform-${PLATFORM}-target-${TARGET}"
 
-cp "${this_dir}/musl_cc_toolchain_config.bzl" ./
+cp "${this_dir}/musl_cc_test_toolchain.bzl" ./
 sed -e "s#{{target_arch}}#${TARGET_ARCH}#g" -e "s#{{toolchain_name}}#${output_name_without_extension//./_}#g" "${this_dir}/musl-toolchain.BUILD.bazel.template" > ./BUILD.bazel
 
-included_files=(musl_cc_toolchain_config.bzl BUILD.bazel bin include lib libexec "${TARGET}")
+included_files=(musl_cc_test_toolchain.bzl BUILD.bazel bin include lib libexec "${TARGET}")
 
 output_dir="${this_dir}/output"
 mkdir -p "${output_dir}"
