@@ -913,7 +913,7 @@ def make_jobs(release, version):
                 "tag_name": version,
             },
             "secrets": {
-                "publish_token": "${{ secrets.BCR_PUBLISH_TOKEN }}",
+                "BCR_PUBLISH_TOKEN": "${{ secrets.BCR_PUBLISH_TOKEN }}",
             },
         }
     return jobs
