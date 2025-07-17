@@ -88,6 +88,7 @@ def _musl_cc_test_toolchain_impl(ctx):
     cc_test_info = _CcTestInfo(
         get_runner = cc_test_runner_info,
         linkopts = [],
+        linkstatic = False,
     )
     return [
         platform_common.ToolchainInfo(
@@ -344,7 +345,7 @@ def _impl(ctx):
                         flags = ["-static"],
                         # Executables with dynamic libraries in deps can't be fully static.
                         # This includes both cc_test on Linux with default --dynamic_mode as well as
-                        # e.g. cc_binary with dynamic_deps. Since tests are rarely cross-compiled,
+                        # e.g. cc_binary with dynamic_deps.
                         expand_if_false = "runtime_library_search_directories",
                     ),
                 ],
