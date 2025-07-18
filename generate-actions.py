@@ -791,7 +791,7 @@ EOF2
         },
         {
             "name": "Generate bcr_test/binary_test.sh",
-            "run": f"""mkdir -p bcr_test
+            "run": """mkdir -p bcr_test
 touch bcr_test/binary_test.sh
 chmod +x bcr_test/binary_test.sh
 
@@ -804,7 +804,7 @@ for arg in "$@"; do
     file -L "$BINARY" | grep -q "$arg" || (echo "Binary $BINARY does not have '$arg' in its file info: $(file -L "$BINARY")" && exit 1)
 done
 
-if [[ -n "${{SHOULD_RUN:-}}" ]]; then
+if [[ -n "${SHOULD_RUN:-}" ]]; then
     if ! "$BINARY"; then
         echo "Binary $BINARY failed to run"
         exit 1
@@ -819,12 +819,16 @@ EOF
 """,
         },
         {
-            "name": "Run BCR tests",
-            "run": "cd bcr_test && bazel test ...",
-        },
-        {
             "name": "Generate release archive",
             "run": f"./deterministic-tar.sh {output_path} WORKSPACE MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel bcr_test/.bazelrc bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh",
+        },
+        # Keep the BCR tests at the end since they modify the files included in the release archive.
+        {
+            "name": "Run BCR tests",
+            "run": f"""sed -i 's|https://github.com/bazel-contrib/musl-toolchain/releases/download/{version}/|file://$(pwd)/|g' repositories.bzl
+cd bcr_test
+bazel test ...
+""",
         },
     ]
 
