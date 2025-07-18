@@ -1002,12 +1002,19 @@ jobs:
         $BINARY\"; then\n        echo \"Binary $BINARY failed to run\"\n        exit\
         \ 1\n    fi\nelse\n    echo \"Skipping execution of $BINARY as SHOULD_RUN\
         \ is not set\"\nfi\n\necho \"All tests passed\"\n\nEOF\n"
-    - name: Run BCR tests
-      run: cd bcr_test && bazel test ...
     - name: Generate release archive
       run: ./deterministic-tar.sh musl_toolchain-${{github.ref_name}}.tar.gz WORKSPACE
         MODULE.bazel toolchains_musl.bzl toolchains.bzl repositories.bzl BUILD.bazel
         bcr_test/.bazelrc bcr_test/MODULE.bazel bcr_test/BUILD.bazel bcr_test/binary_test.sh
+    - name: Run BCR tests
+      run: 'sed -i ''s|https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/|file://$(pwd)/|g''
+        repositories.bzl
+
+        cd bcr_test
+
+        bazel test ...
+
+        '
     - name: Generate release body
       run: sha256=$(sha256sum musl_toolchain-${{github.ref_name}}.tar.gz | awk '{print
         $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'
