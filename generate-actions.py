@@ -825,7 +825,7 @@ EOF
         # Keep the BCR tests at the end since they modify the files included in the release archive.
         {
             "name": "Run BCR tests",
-            "run": f"""sed -i 's|https://github.com/bazel-contrib/musl-toolchain/releases/download/{version}/|file://$(pwd)/|g' repositories.bzl
+            "run": f"""sed -i "s|https://github.com/bazel-contrib/musl-toolchain/releases/download/{version}/|file://$(pwd)/|g" repositories.bzl
 cd bcr_test
 bazel test ...
 """,
