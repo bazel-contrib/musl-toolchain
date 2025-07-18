@@ -917,6 +917,8 @@ jobs:
 
         common --test_output=errors
 
+        common --verbose_failures
+
         EOF
 
         '
@@ -966,7 +968,7 @@ jobs:
         ,\n        \"test\",\n    ]\n    for target_platform in [\n        \"linux_x86_64\"\
         ,\n        \"linux_aarch64\",\n    ]\n]\n\nHOST_PLATFORM = \"{}_{}\".format(\n\
         \    \"linux\" if \"@platforms//os:linux\" in HOST_CONSTRAINTS else \"darwin\"\
-        ,\n    \"x86_64\" if \"@platforms//os:x86_64\" in HOST_CONSTRAINTS else \"\
+        ,\n    \"x86_64\" if \"@platforms//cpu:x86_64\" in HOST_CONSTRAINTS else \"\
         aarch64\",\n)\n\n[\n    sh_test(\n        name = \"{}_{}_test\".format(name,\
         \ target_platform),\n        srcs = [\"binary_test.sh\"],\n        args =\
         \ [\n            {\n                \"binary\": \"'statically linked'\",\n\

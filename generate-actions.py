@@ -556,6 +556,7 @@ common --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 common --extra_execution_platforms=@platforms//host,//:linux_x86_64,//:linux_aarch64
 
 common --test_output=errors
+common --verbose_failures
 EOF
 '''
         },
@@ -707,7 +708,7 @@ cc_binary(
 
 HOST_PLATFORM = "{}_{}".format(
     "linux" if "@platforms//os:linux" in HOST_CONSTRAINTS else "darwin",
-    "x86_64" if "@platforms//os:x86_64" in HOST_CONSTRAINTS else "aarch64",
+    "x86_64" if "@platforms//cpu:x86_64" in HOST_CONSTRAINTS else "aarch64",
 )
 
 [

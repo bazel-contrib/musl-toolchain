@@ -1,8 +1,15 @@
 bcr_test_module:
   module_path: "bcr_test"
   matrix:
-    platform: ["debian10", "macos", "macos_arm64", "ubuntu2004"]
-    bazel: [6.*, 7.*, 8.*]
+    platform:
+      - "debian10"
+      - "macos"
+      - "macos_arm64"
+      - "rockylinux8"
+      - "rockylinux8_arm64"
+      - "ubuntu2004"
+      - "ubuntu2404"
+    bazel: [ 6.*, 7.*, 8.* ]
   tasks:
     run_tests:
       name: "Run test module"
@@ -11,14 +18,10 @@ bcr_test_module:
       build_targets:
         - "//..."
       build_flags:
-        - "--test_output=errors"
-        - "--verbose_failures"
         # Required with Bazel 6
         - "--incompatible_enable_cc_toolchain_resolution"
       test_targets:
         - "//..."
       test_flags:
-        - "--test_output=errors"
-        - "--verbose_failures"
         # Required with Bazel 6
         - "--incompatible_enable_cc_toolchain_resolution"
