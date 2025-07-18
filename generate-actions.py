@@ -652,7 +652,7 @@ genrule(
 #include "lib.h"
 
 int main(void) {
-  printf("%s\\n", get_build_info());
+  printf("%s\\\\n", get_build_info());
   return 0;
 }
 EOF
