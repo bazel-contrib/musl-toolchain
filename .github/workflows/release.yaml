@@ -951,7 +951,7 @@ jobs:
         \ncc_library(\n    name = \"lib\",\n    srcs = [\"lib.cc\"],\n    hdrs = [\"\
         lib.h\"],\n    tags = [\"manual\"],\n)\n\ngenrule(\n    name = \"generate_main_source\"\
         ,\n    outs = [\"main.cc\"],\n    cmd = \"\"\"cat >$@ <<'EOF'\n#include <stdio.h>\n\
-        #include \"lib.h\"\n\nint main(void) {\n  printf(\"%s\\n\", get_build_info());\n\
+        #include \"lib.h\"\n\nint main(void) {\n  printf(\"%s\\\\n\", get_build_info());\n\
         \  return 0;\n}\nEOF\n\"\"\",\n)\n\ncc_binary(\n    name = \"binary\",\n \
         \   srcs = [\"main.cc\"],\n    tags = [\"manual\"],\n    deps = [\":lib\"\
         ],\n)\n\ncc_test(\n    name = \"test\",\n    srcs = [\"main.cc\"],\n    tags\
