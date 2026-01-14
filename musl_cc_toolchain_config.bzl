@@ -25,6 +25,7 @@ load(
     "tool_path",
     "with_feature_set",
 )
+load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
 
 _CcTestInfo = provider(
     doc = "Toolchain implementation for @bazel_tools//tools/cpp:test_runner_toolchain_type",

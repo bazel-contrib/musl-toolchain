@@ -695,10 +695,10 @@ jobs:
       run: "touch MODULE.bazel\n\nversion=\"${{github.ref_name}}\"\n\ncat >MODULE.bazel\
         \ <<EOF\nmodule(\n    name = \"toolchains_musl\",\n    version = \"${version#v}\"\
         ,\n)\n\nbazel_dep(name = \"bazel_features\", version = \"1.9.0\")\nbazel_dep(name\
-        \ = \"platforms\", version = \"0.0.9\")\n\ntoolchains_musl = use_extension(\"\
-        //:toolchains_musl.bzl\", \"toolchains_musl\")\nuse_repo(toolchains_musl,\
-        \ \"musl_toolchains_hub\")\n\nregister_toolchains(\"@musl_toolchains_hub//:all\"\
-        )\nEOF\n"
+        \ = \"platforms\", version = \"0.0.9\")\nbazel_dep(name = \"rules_cc\", version\
+        \ = \"0.2.16\")\n\ntoolchains_musl = use_extension(\"//:toolchains_musl.bzl\"\
+        , \"toolchains_musl\")\nuse_repo(toolchains_musl, \"musl_toolchains_hub\"\
+        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
     - name: Generate WORKSPACE
       run: 'touch WORKSPACE
 

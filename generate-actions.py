@@ -429,6 +429,7 @@ module(
 
 bazel_dep(name = "bazel_features", version = "1.9.0")
 bazel_dep(name = "platforms", version = "{platforms_version}")
+bazel_dep(name = "rules_cc", version = "0.2.16")
 
 toolchains_musl = use_extension("//:toolchains_musl.bzl", "toolchains_musl")
 use_repo(toolchains_musl, "musl_toolchains_hub")
