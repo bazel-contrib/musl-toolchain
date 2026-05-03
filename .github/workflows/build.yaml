@@ -24,11 +24,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh x86_64
-    - name: Upload musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   unknown-linux-gnu-x86_64-x86_64-test-build:
     runs-on: ubuntu-24.04
@@ -37,32 +37,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
-        ,\n    sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(sha256sum musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n\
-        \    ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        \    ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n\
-        \    ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl//:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
+        \    ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl//:musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n \
@@ -93,11 +93,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh x86_64
-    - name: Upload musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   unknown-linux-gnu-aarch64-x86_64-test-build:
     runs-on: ubuntu-24.04-arm
@@ -106,32 +106,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
-        ,\n    sha256 = \"$(sha256sum musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(sha256sum musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n \
-        \   ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
+        \   ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n\
-        \    ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl//:musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
+        \    ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl//:musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n \
@@ -156,11 +156,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh x86_64
-    - name: Upload musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-x86_64-test-build:
     runs-on: macos-13
@@ -169,32 +169,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
-        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n  \
         \      \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n\
-        \    ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl//:musl-1_2_3-platform-x86_64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
+        \    ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl//:musl-1_2_5-platform-x86_64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n \
@@ -219,11 +219,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh x86_64
-    - name: Upload musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-aarch64-x86_64-test-build:
     runs-on: macos-15
@@ -232,32 +232,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
-        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n   \
         \     \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n   \
-        \ ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
+        \ ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n\
-        \    ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl//:musl-1_2_3-platform-aarch64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
+        \    ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl//:musl-1_2_5-platform-aarch64-apple-darwin-target-x86_64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:x86_64\",\n        \"@platforms//os:linux\",\n \
@@ -332,11 +332,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh aarch64
-    - name: Upload musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   unknown-linux-gnu-x86_64-aarch64-test-build:
     runs-on: ubuntu-24.04
@@ -345,32 +345,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
-        ,\n    sha256 = \"$(sha256sum musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n    sha256 = \"$(sha256sum musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n\
         \        \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n \
-        \   ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        \   ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl//:musl-1_2_3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl//:musl-1_2_5-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
@@ -397,11 +397,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh aarch64
-    - name: Upload musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   unknown-linux-gnu-aarch64-aarch64-test-build:
     runs-on: ubuntu-24.04-arm
@@ -410,32 +410,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
-        ,\n    sha256 = \"$(sha256sum musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        ,\n    sha256 = \"$(sha256sum musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl//:musl-1_2_3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl//:musl-1_2_5-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
@@ -464,11 +464,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh aarch64
-    - name: Upload musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-aarch64-test-build:
     runs-on: macos-13
@@ -477,32 +477,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
-        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:x86_64\",\n   \
         \     \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n  \
         \      \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n   \
-        \ ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
+        \ ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_3-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_5-platform-x86_64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
@@ -527,11 +527,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Build musl
       run: ./build.sh aarch64
-    - name: Upload musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
+    - name: Upload musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
       uses: actions/upload-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        path: output/musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        path: output/musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-aarch64-aarch64-test-build:
     runs-on: macos-15
@@ -540,32 +540,32 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-    - name: Download musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
+    - name: Download musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
       uses: actions/download-artifact@v4
       with:
-        name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
+        name: musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
         path: .
     - name: Skipping downloading bazelisk - already installed
       run: bazel --version
     - name: Generate builder workspace file
       run: "cat >test-workspaces/builder/WORKSPACE.bazel <<EOF\nload(\"@bazel_tools//tools/build_defs/repo:http.bzl\"\
-        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
-        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz\
-        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
+        , \"http_archive\")\n\nhttp_archive(\n    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
+        ,\n    sha256 = \"$(shasum -a 256 musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz\
+        \ | awk '{print $1}')\",\n    url = \"file://$(pwd)/musl-1.2.5-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz\"\
         ,\n)\n\nEOF\n"
     - name: Generate builder workspace config BUILD.bazel file
       run: "mkdir -p test-workspaces/builder/config && cat >test-workspaces/builder/config/BUILD.bazel\
-        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
+        \ <<EOF\ntoolchain(\n    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:osx\",\n    ],\n    target_compatible_with = [\n   \
         \     \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n    ],\n\
-        \    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
+        \    toolchain = \"@musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:toolchain_type\",\n)\ntoolchain(\n\
-        \    name = \"musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        \    name = \"musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    exec_compatible_with = [\n        \"@platforms//cpu:arm64\",\n    \
         \    \"@platforms//os:linux\",\n    ],\n    target_compatible_with = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \
-        \  ],\n    toolchain = \"@musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_3-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
+        \  ],\n    toolchain = \"@musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl//:musl-1_2_5-platform-aarch64-apple-darwin-target-aarch64-linux-musl_test_toolchain\"\
         ,\n    toolchain_type = \"@bazel_tools//tools/cpp:test_runner_toolchain_type\"\
         ,\n)\n\nplatform(\n    name = \"platform\",\n    constraint_values = [\n \
         \       \"@platforms//cpu:arm64\",\n        \"@platforms//os:linux\",\n  \

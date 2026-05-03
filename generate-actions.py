@@ -18,6 +18,7 @@ check_generated_files = {
 }
 
 platforms_version = "0.0.9"
+musl_version = "1.2.5"
 
 class Architecture(Enum):
     ARM64 = 1
@@ -186,7 +187,7 @@ def get_platform_sha256sum(os: OS):
 
 
 def musl_filename_without_extension(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:
-    return f"musl-1.2.3-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
+    return f"musl-{musl_version}-platform-{source_arch.for_musl}-{source_os.for_musl}-target-{target_arch.for_musl}-linux-musl"
 
 
 def musl_toolchain_target_name(source_os: OS, source_arch: Architecture, target_arch: Architecture) -> str:

@@ -13,7 +13,7 @@ this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 TARGET_ARCH="$1"
 TARGET="${TARGET_ARCH}-linux-musl"
 
-MUSL_VERSION=1.2.3
+MUSL_VERSION=1.2.5
 if [[ "Linux" == "$(uname)" ]]; then
     if [[ "x86_64" == "$(uname -p)" ]]; then
         PLATFORM=x86_64-unknown-linux-gnu
