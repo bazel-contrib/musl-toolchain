@@ -140,7 +140,7 @@ _setup_darwin_steps = [
 
 darwin_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-13",
+        "runs-on": "macos-15-intel",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
