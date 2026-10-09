@@ -1,3 +1,4 @@
+# Publish new releases to Bazel Central Registry.
 name: Publish to BCR
 on:
   # Run the publish workflow after a successful release
@@ -8,7 +9,7 @@ on:
         required: true
         type: string
     secrets:
-      BCR_PUBLISH_TOKEN:
+      publish_token:
         required: true
   # In case of problems, let release engineers retry by manually dispatching
   # the workflow from the GitHub UI
@@ -20,12 +21,14 @@ on:
         type: string
 jobs:
   publish:
-    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v0.2.2
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.5.1
     with:
       tag_name: ${{ inputs.tag_name }}
       # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
       registry_fork: bazel-contrib/bazel-central-registry
       draft: false
+      # The BCR only accepts an attestation for the release archive if it was produced by the reusable
+      # release_ruleset workflow, which can't build this repo's release archive.
       attest: false
     permissions:
       attestations: write
@@ -33,4 +36,4 @@ jobs:
       id-token: write
     secrets:
       # Necessary to push to the BCR fork, and to open a pull request against a registry
-      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
+      publish_token: ${{ secrets.publish_token || secrets.BCR_PUBLISH_TOKEN }}

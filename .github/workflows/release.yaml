@@ -1022,97 +1022,31 @@ jobs:
         $1}') ; url='https://github.com/bazel-contrib/musl-toolchain/releases/download/${{github.ref_name}}/musl_toolchain-${{github.ref_name}}.tar.gz'
         ; version='${{github.ref_name}}'; sed -e "s#{sha256}#${sha256}#g" -e "s#{url}#${url}#g"
         -e "s|{version}|${version#v}|g" release.txt.template > release-notes.txt
-    - id: create_release
-      name: Create release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create release
+      uses: softprops/action-gh-release@v3.0.1
       with:
         generate_release_notes: true
         tag_name: ${{github.ref_name}}
         body_path: release-notes.txt
         target_commitish: ${{ github.base_ref }}
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl_toolchain-${{github.ref_name}}.tar.gz
-        asset_path: musl_toolchain-${{github.ref_name}}.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        asset_content_type: application/gzip
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_name: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        asset_path: musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz
-        asset_content_type: application/gzip
+        fail_on_unmatched_files: true
+        files: 'musl_toolchain-${{github.ref_name}}.tar.gz
+
+          musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-aarch64-apple-darwin-target-x86_64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-x86_64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
+
+          musl-1.2.3-platform-aarch64-apple-darwin-target-aarch64-linux-musl.tar.gz'
   publish:
     needs:
     - release
@@ -1120,4 +1054,4 @@ jobs:
     with:
       tag_name: ${{github.ref_name}}
     secrets:
-      BCR_PUBLISH_TOKEN: ${{ secrets.BCR_PUBLISH_TOKEN }}
+      publish_token: ${{ secrets.publish_token || secrets.BCR_PUBLISH_TOKEN }}
