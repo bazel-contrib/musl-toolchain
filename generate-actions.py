@@ -836,22 +836,6 @@ bazel test ...
 
 
 
-def upload_release_archive_artifact(filename):
-    return {
-        "name": "Upload release archive",
-        "uses": "actions/upload-release-asset@v1",
-        "env": {
-            "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}",
-        },
-        "with": {
-            "upload_url": "${{ steps.create_release.outputs.upload_url }}",
-            "asset_name": filename,
-            "asset_path": filename,
-            "asset_content_type": "application/gzip",
-        },
-    }
-
-
 def generate_release_body(release_body_path, release_archive_path, version):
     return {
         "name": "Generate release body",
@@ -1013,27 +997,23 @@ def make_jobs(release, version):
                      + generate_release_archive(releasable_artifacts, release_archive_path, version)
                      + [
                          generate_release_body(release_body_path, release_archive_path, version),
-                     ]
-                     + [
                          {
-                             "id": "create_release",
                              "name": "Create release",
-                             "uses": "softprops/action-gh-release@v1",
-                             "env": {
-                                 "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}",
-                             },
+                             # Keeps the release as a draft until all files have been uploaded, which is required
+                             # for immutable releases.
+                             "uses": "softprops/action-gh-release@v3.0.1",
                              "with": {
                                  "generate_release_notes": True,
                                  "tag_name": version,
                                  "body_path": release_body_path,
                                  "target_commitish": "${{ github.base_ref }}",
+                                 "fail_on_unmatched_files": True,
+                                 "files": "\n".join(
+                                     [release_archive_path]
+                                     + [artifact.musl_filename for artifact in releasable_artifacts]
+                                 ),
                              },
                          },
-                         upload_release_archive_artifact(release_archive_path),
-                     ]
-                     + [
-                         upload_release_archive_artifact(artifact.musl_filename)
-                         for artifact in releasable_artifacts
                      ],
         }
         jobs["publish"] = {
@@ -1043,7 +1023,7 @@ def make_jobs(release, version):
                 "tag_name": version,
             },
             "secrets": {
-                "BCR_PUBLISH_TOKEN": "${{ secrets.BCR_PUBLISH_TOKEN }}",
+                "publish_token": "${{ secrets.publish_token || secrets.BCR_PUBLISH_TOKEN }}",
             },
         }
     return jobs
