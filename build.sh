@@ -40,8 +40,9 @@ else
     volume_mount_dir="/Volumes/musl-build-dir-$(uuidgen)"
     hdiutil attach -nobrowse -mountpoint "${volume_mount_dir}" "${volume_bundle}"
     working_directory="${volume_mount_dir}"
-    # Sleep to give a little time for lingering processes using the mount dir to terminate.
-    trap "cd ${this_dir} ; sleep 15 ; hdiutil detach ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
+    # Sleep to give a little time for lingering processes using the mount dir to terminate. Detaching can still fail with
+    # "Resource busy", in which case it's forced.
+    trap "cd ${this_dir} ; sleep 15 ; hdiutil detach ${volume_mount_dir} || hdiutil detach -force ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
 
 fi
 
