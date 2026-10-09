@@ -59,6 +59,21 @@ cat <<EOF >> config.mak
 DL_CMD = wget --retry-connrefused --retry-on-http-error=502,503,504 --waitretry=10 --tries=10 -c -O
 EOF
 
+# musl-cross-make fetches config.sub from savannah's gitweb, which persistently returns 502s.
+# Pre-fetch it from savannah's cgit instead, so make finds it already present.
+mkdir -p sources
+config_sub_rev="$(sed -n 's/^CONFIG_SUB_REV = //p' Makefile)"
+wget --retry-connrefused --retry-on-http-error=502,503,504 --waitretry=10 --tries=10 -O sources/config.sub "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.sub?id=${config_sub_rev}"
+(cd sources && sha1sum -c "../hashes/config.sub.${config_sub_rev}.sha1")
+
+if [[ "Darwin" == "$(uname)" ]]; then
+  # The zlib bundled with binutils and gcc defines fdopen as a macro on macOS, which breaks with newer macOS SDKs
+  # that declare fdopen in _stdio.h. Defining fdopen as itself makes zlib skip its definition.
+  cat <<EOF >> config.mak
+COMMON_CONFIG += CFLAGS="-g -O2 -Dfdopen=fdopen"
+EOF
+fi
+
 # Linux uses a two-stage build in which the first stage builds a musl toolchain for the host using the host's compiler.
 # The second (and on macOS only) stage then builds the final toolchain using the stage1 toolchain. This is necessary to
 # avoid a glibc dependency of the final toolchain on Linux, as the host compiler is usually glibc-based.

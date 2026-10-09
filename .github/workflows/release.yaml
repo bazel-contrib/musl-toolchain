@@ -153,7 +153,7 @@ jobs:
         path: output/test-binary-platform-aarch64-unknown-linux-gnu-target-x86_64-linux-musl
         if-no-files-found: error
   apple-darwin-x86_64-x86_64:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     needs:
     - check-generated
     steps:
@@ -169,7 +169,7 @@ jobs:
         path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-x86_64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-x86_64-test-build:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     needs:
     - apple-darwin-x86_64-x86_64
     steps:
@@ -461,7 +461,7 @@ jobs:
         path: output/test-binary-platform-aarch64-unknown-linux-gnu-target-aarch64-linux-musl
         if-no-files-found: error
   apple-darwin-x86_64-aarch64:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     needs:
     - check-generated
     steps:
@@ -477,7 +477,7 @@ jobs:
         path: output/musl-1.2.3-platform-x86_64-apple-darwin-target-aarch64-linux-musl.tar.gz
         if-no-files-found: error
   apple-darwin-x86_64-aarch64-test-build:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     needs:
     - apple-darwin-x86_64-aarch64
     steps:
@@ -695,10 +695,10 @@ jobs:
       run: "touch MODULE.bazel\n\nversion=\"${{github.ref_name}}\"\n\ncat >MODULE.bazel\
         \ <<EOF\nmodule(\n    name = \"toolchains_musl\",\n    version = \"${version#v}\"\
         ,\n)\n\nbazel_dep(name = \"bazel_features\", version = \"1.9.0\")\nbazel_dep(name\
-        \ = \"platforms\", version = \"0.0.9\")\n\ntoolchains_musl = use_extension(\"\
-        //:toolchains_musl.bzl\", \"toolchains_musl\")\nuse_repo(toolchains_musl,\
-        \ \"musl_toolchains_hub\")\n\nregister_toolchains(\"@musl_toolchains_hub//:all\"\
-        )\nEOF\n"
+        \ = \"platforms\", version = \"0.0.9\")\nbazel_dep(name = \"rules_cc\", version\
+        \ = \"0.2.18\")\n\ntoolchains_musl = use_extension(\"//:toolchains_musl.bzl\"\
+        , \"toolchains_musl\")\nuse_repo(toolchains_musl, \"musl_toolchains_hub\"\
+        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
     - name: Generate WORKSPACE
       run: 'touch WORKSPACE
 

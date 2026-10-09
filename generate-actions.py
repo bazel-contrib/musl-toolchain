@@ -140,7 +140,7 @@ _setup_darwin_steps = [
 
 darwin_x86_64_runner = BaseRunner(
     top_level_properties={
-        "runs-on": "macos-13",
+        "runs-on": "macos-15-intel",
     },
     build_setup_steps=_setup_darwin_steps,
     test_setup_steps=[],
@@ -429,6 +429,7 @@ module(
 
 bazel_dep(name = "bazel_features", version = "1.9.0")
 bazel_dep(name = "platforms", version = "{platforms_version}")
+bazel_dep(name = "rules_cc", version = "0.2.18")
 
 toolchains_musl = use_extension("//:toolchains_musl.bzl", "toolchains_musl")
 use_repo(toolchains_musl, "musl_toolchains_hub")
