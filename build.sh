@@ -74,12 +74,16 @@ COMMON_CONFIG += CFLAGS="-g -O2 -Dfdopen=fdopen"
 EOF
 fi
 
+# Build with one job per CPU. musl-cross-make invokes the binutils, gcc and musl builds via $(MAKE), so they all share
+# the jobserver. Installing is left serial since it only copies files that have already been built.
+MAKE_JOBS="$(getconf _NPROCESSORS_ONLN)"
+
 # Linux uses a two-stage build in which the first stage builds a musl toolchain for the host using the host's compiler.
 # The second (and on macOS only) stage then builds the final toolchain using the stage1 toolchain. This is necessary to
 # avoid a glibc dependency of the final toolchain on Linux, as the host compiler is usually glibc-based.
 if [[ "Linux" == "$(uname)" ]]; then
   echo "Building stage1 toolchain..."
-  TARGET="${HOST}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+  TARGET="${HOST}" make -j"${MAKE_JOBS}" MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
   TARGET="${HOST}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install OUTPUT="${working_directory}/output_stage1"
 
   echo "Building stage2 toolchain..."
@@ -92,7 +96,7 @@ COMMON_CONFIG += CC="${working_directory}/output_stage1/bin/${HOST}-gcc -static 
 EOF
 fi
 
-TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
+TARGET="${TARGET}" make -j"${MAKE_JOBS}" MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/"
 TARGET="${TARGET}" make MUSL_VER="${MUSL_VERSION}" GNU_SITE="https://mirror.netcologne.de/gnu/" install
 
 cd output
