@@ -60,11 +60,17 @@ cat <<EOF >> config.mak
 DL_CMD = wget --retry-connrefused --retry-on-http-error=502,503,504 --waitretry=10 --tries=10 -c -O
 EOF
 
-# musl-cross-make fetches config.sub from savannah's gitweb, which persistently returns 502s.
-# Pre-fetch it from savannah's cgit instead, so make finds it already present.
+# musl-cross-make fetches config.sub from savannah's gitweb, which persistently returns 502s. savannah's cgit
+# redirects to a host that doesn't resolve. Pre-fetch it from the git repository instead, so make finds it already
+# present.
 mkdir -p sources
 config_sub_rev="$(sed -n 's/^CONFIG_SUB_REV = //p' Makefile)"
-wget --retry-connrefused --retry-on-http-error=502,503,504 --waitretry=10 --tries=10 -O sources/config.sub "https://cgit.git.savannah.gnu.org/cgit/config.git/plain/config.sub?id=${config_sub_rev}"
+for attempt in 1 2 3 4 5; do
+  git clone --quiet --bare https://git.savannah.gnu.org/git/config.git config.git && break
+  rm -rf config.git
+  sleep 10
+done
+git --git-dir=config.git show "${config_sub_rev}:config.sub" > sources/config.sub
 (cd sources && sha1sum -c "../hashes/config.sub.${config_sub_rev}.sha1")
 
 if [[ "Darwin" == "$(uname)" ]]; then
