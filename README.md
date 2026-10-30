@@ -8,7 +8,6 @@ The supported execution platforms are:
 
 * Linux x86_64
 * Linux arm64
-* macOS x86_64
 * macOS arm64
 
 The supported target platforms are: 
