@@ -38,11 +38,12 @@ else
     hdiutil create -type SPARSE -fs "Case-sensitive APFS" -size 10g -volname CS "${volume_bundle_tempdir}/volume"
     volume_bundle="${volume_bundle_tempdir}/volume.sparseimage"
     volume_mount_dir="/Volumes/musl-build-dir-$(uuidgen)"
-    hdiutil attach -nobrowse -mountpoint "${volume_mount_dir}" "${volume_bundle}"
+    # The first line of the output is the image's whole disk.
+    volume_device="$(hdiutil attach -nobrowse -mountpoint "${volume_mount_dir}" "${volume_bundle}" | awk 'NR == 1 { print $1 }')"
     working_directory="${volume_mount_dir}"
-    # Sleep to give a little time for lingering processes using the mount dir to terminate. Detaching can still fail with
-    # "Resource busy", in which case it's forced.
-    trap "cd ${this_dir} ; sleep 15 ; hdiutil detach ${volume_mount_dir} || hdiutil detach -force ${volume_mount_dir} ; rm -rf ${volume_bundle_tempdir}" EXIT
+    # Lingering processes can keep the disk busy for a while, even after the volume has been unmounted. Retry detaching it,
+    # but don't fail the build if it stays attached.
+    trap "cd ${this_dir} ; for attempt in 1 2 3 4 5 ; do sleep 15 ; hdiutil detach ${volume_device} && break ; done ; rm -rf ${volume_bundle_tempdir}" EXIT
 
 fi
 
