@@ -424,7 +424,7 @@ bazel_dep(name = "rules_cc", version = "0.2.18")
 toolchains_musl = use_extension("//:toolchains_musl.bzl", "toolchains_musl")
 use_repo(toolchains_musl, "musl_toolchains_hub")
 
-register_toolchains("@musl_toolchains_hub//:all")
+register_toolchains("@musl_toolchains_hub//:all", dev_dependency = True)
 EOF
 """,
         },
@@ -574,6 +574,9 @@ toolchains_musl.config(
     extra_target_compatible_with = ["//:musl_on"],
     target_settings = ["//:musl_flavor"],
 )
+use_repo(toolchains_musl, "musl_toolchains_hub")
+
+register_toolchains("@musl_toolchains_hub//:all", dev_dependency = True)
 
 EOF
 """,
