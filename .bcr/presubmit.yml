@@ -3,7 +3,6 @@ bcr_test_module:
   matrix:
     platform:
       - "debian10"
-      - "macos"
       - "macos_arm64"
       - "rockylinux8"
       - "rockylinux8_arm64"
