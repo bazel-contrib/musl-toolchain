@@ -542,7 +542,8 @@ jobs:
         \ = \"platforms\", version = \"0.0.9\")\nbazel_dep(name = \"rules_cc\", version\
         \ = \"0.2.18\")\n\ntoolchains_musl = use_extension(\"//:toolchains_musl.bzl\"\
         , \"toolchains_musl\")\nuse_repo(toolchains_musl, \"musl_toolchains_hub\"\
-        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\")\nEOF\n"
+        )\n\nregister_toolchains(\"@musl_toolchains_hub//:all\", dev_dependency =\
+        \ True)\nEOF\n"
     - name: Generate WORKSPACE
       run: 'touch WORKSPACE
 
@@ -738,7 +739,9 @@ jobs:
         rules_shell\", version = \"0.5.0\")\n\ntoolchains_musl = use_extension(\"\
         @toolchains_musl//:toolchains_musl.bzl\", \"toolchains_musl\", dev_dependency\
         \ = True)\ntoolchains_musl.config(\n    extra_target_compatible_with = [\"\
-        //:musl_on\"],\n    target_settings = [\"//:musl_flavor\"],\n)\n\nEOF\n"
+        //:musl_on\"],\n    target_settings = [\"//:musl_flavor\"],\n)\nuse_repo(toolchains_musl,\
+        \ \"musl_toolchains_hub\")\n\nregister_toolchains(\"@musl_toolchains_hub//:all\"\
+        , dev_dependency = True)\n\nEOF\n"
     - name: Generate bcr_test/BUILD.bazel
       run: "mkdir -p bcr_test\ntouch bcr_test/BUILD.bazel\n\ncat >bcr_test/BUILD.bazel\
         \ <<'EOF2'\nload(\"@aspect_bazel_lib//lib:transitions.bzl\", \"platform_transition_binary\"\
